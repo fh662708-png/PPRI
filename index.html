@@ -1,1 +1,728 @@
-2121213123121321212222
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SETA · Gestão da Clínica</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0F3D3E; --ink-soft:#1B6B6F; --paper:#F7F5F0; --paper-alt:#EFEBE2;
+    --coral:#E8672A; --coral-soft:#FBDCCB; --green:#3D8361; --green-soft:#DCEEE2;
+    --yellow:#C68A1E; --yellow-soft:#F6E7C6; --red:#C1443A; --red-soft:#F6DAD6;
+    --line:#DDD6C6; --white:#FFFCF7; --shadow: 0 8px 24px rgba(15,61,62,0.08);
+    --marina:#7B5EA7; --marina-soft:#EBE4F5; --nath:#2563EB; --nath-soft:#DBEAFE;
+  }
+  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
+  body{ background:var(--paper); color:var(--ink); font-family:'Space Grotesk', sans-serif; -webkit-font-smoothing:antialiased; }
+  h1,h2,h3{ font-family:'Fraunces', serif; margin:0 0 4px 0; font-weight:600; }
+  .app-shell{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
+
+  header.top{ display:flex;align-items:center;justify-content:space-between; padding:26px 0 18px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
+  .brand{display:flex;align-items:center;gap:12px;}
+  .brand-text h1{font-size:28px;letter-spacing:0.5px;color:var(--ink);}
+  .brand-text p{margin:0;font-size:12.5px;color:var(--ink-soft);letter-spacing:1.5px;text-transform:uppercase;}
+
+  nav.tabs{display:flex;gap:6px;background:var(--paper-alt);padding:5px;border-radius:12px;overflow-x:auto;}
+  nav.tabs button{ border:none;background:transparent;padding:10px 16px;border-radius:9px; font-family:'Space Grotesk';font-size:14px;font-weight:600;color:var(--ink-soft); cursor:pointer; transition:all .15s ease; }
+  nav.tabs button.active{background:var(--ink);color:var(--white);}
+  nav.tabs button:hover:not(.active){background:#e4ddc9;}
+
+  section.view{display:none;} section.view.active{display:block; animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
+
+  .card{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); margin-bottom:22px; }
+  .card h2{font-size:20px;} .subtle{color:var(--ink-soft);font-size:13.5px;margin:0 0 18px 0;}
+
+  .grid-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
+  .stat{ background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px 20px; box-shadow:var(--shadow); border-left:5px solid var(--ink); }
+  .stat .num{font-family:'Fraunces';font-size:32px;font-weight:700;line-height:1;}
+  .stat .label{font-size:12.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
+  .stat.urgente{border-left-color:var(--red);} .stat.atencao{border-left-color:var(--yellow);} .stat.estoque{border-left-color:var(--coral);}
+
+  form.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;align-items:end;}
+  .field{display:flex;flex-direction:column;gap:6px;}
+  .field label{font-size:12.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
+  .field input, .field select, .field textarea{ font-family:'Space Grotesk';font-size:14.5px;padding:10px 12px; border:1.5px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink); }
+  .field input[type="checkbox"]{width:20px;height:20px;accent-color:var(--ink);}
+  .checkbox-wrap{display:flex;align-items:center;gap:8px;background:var(--green-soft);padding:12px;border-radius:9px;border:1px solid var(--green);}
+  .checkbox-wrap label{margin:0;color:var(--green);font-size:13.5px;font-weight:600;}
+  .field.span2{grid-column:span 2;}
+
+  .btn{ font-family:'Space Grotesk';font-weight:700;font-size:14px; padding:11px 20px;border-radius:9px;border:none;cursor:pointer; background:var(--ink);color:var(--white); transition:transform .12s ease; }
+  .btn:hover{background:var(--ink-soft);} .btn:active{transform:scale(0.97);}
+  .btn.coral{background:var(--coral);} .btn.coral:hover{background:#d4551b;}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line);}
+  .btn.ghost:hover{background:var(--paper-alt);}
+  .btn.small{padding:6px 12px;font-size:12.5px;}
+  .btn.danger-ghost{background:transparent;color:var(--red);border:1.5px solid var(--red-soft);}
+  .btn.zap{background:#25D366;color:#fff;} .btn.zap:hover{background:#1EBE5A;}
+  .btn.zap:disabled{background:var(--line);cursor:not-allowed;}
+
+  .list{display:flex;flex-direction:column;gap:12px;margin-top:20px;}
+  .row-card{ border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--white); display:flex; justify-content:space-between; align-items:center; gap:16px; border-left:6px solid var(--ink); flex-wrap:wrap; }
+  .row-card.ok{border-left-color:var(--green);} .row-card.atencao{border-left-color:var(--yellow);} .row-card.urgente{border-left-color:var(--coral);} .row-card.critico{border-left-color:var(--red); background:linear-gradient(90deg, var(--red-soft), var(--white) 40%);}
+
+  .row-main{display:flex;flex-direction:column;gap:4px;min-width:220px;flex:1;}
+  .row-main strong{font-size:15.5px;}
+  .row-meta{font-size:12.5px;color:var(--ink-soft);}
+  .row-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;flex-wrap:wrap;}
+
+  .badge{ display:inline-flex;align-items:center;gap:6px; font-size:11.5px;font-weight:700;text-transform:uppercase; padding:5px 10px;border-radius:999px; }
+  .badge.ok{background:var(--green-soft);color:var(--green);} .badge.atencao{background:var(--yellow-soft);color:var(--yellow);}
+  .badge.urgente{background:var(--coral-soft);color:var(--coral);} .badge.critico{background:var(--red);color:var(--white);}
+  .badge.marina{background:var(--marina-soft);color:var(--marina);} .badge.nath{background:var(--nath-soft);color:var(--nath);}
+
+  .doses-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .dose-chip{ font-family:'Space Grotesk'; font-size:11.5px; padding:5px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); }
+  .dose-chip.aplicada{background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:600;}
+  .dose-chip.pendente{ background:var(--white); color:var(--ink-soft); border:1.5px dashed var(--line); font-weight:700; cursor:pointer; }
+  .dose-chip.pendente:hover{background:var(--coral-soft);color:var(--coral);border-color:var(--coral);}
+  
+  .filter-bar{display:flex;gap:10px;margin-bottom:20px;background:var(--white);padding:12px;border-radius:12px;border:1px solid var(--line);align-items:center;}
+  .filter-bar label{font-size:12.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;}
+  .filter-bar select{font-family:'Space Grotesk';font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);flex:1;}
+
+  #login-screen{ position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:999; padding:20px; }
+  .login-card{ background:var(--white); border-radius:16px; padding:36px 32px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; }
+  .login-card input{width:100%;}
+  .login-error{color:var(--red);font-size:13px;margin:10px 0 0 0;display:none;font-weight:600;}
+  #app-shell-wrap{display:none;}
+</style>
+</head>
+<body>
+
+<div id="login-screen">
+  <div class="login-card">
+    <h1>SETA</h1>
+    <p>Acesso restrito ao administrador</p>
+    <form id="form-login">
+      <div class="field" style="text-align:left;">
+        <label>Senha</label>
+        <input type="password" id="login-senha" required placeholder="Digite a senha">
+      </div>
+      <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
+      <button type="submit" class="btn coral" style="width:100%; margin-top:15px;">Entrar</button>
+    </form>
+  </div>
+</div>
+
+<div id="app-shell-wrap">
+<div class="app-shell">
+
+  <header class="top">
+    <div class="brand">
+      <div class="brand-text">
+        <h1>SETA</h1>
+        <p>Painel Integrado da Clínica (ITAS / MSG / IMUNO)</p>
+      </div>
+    </div>
+    <nav class="tabs">
+      <button data-tab="painel" class="active">Painel & WhatsApp</button>
+      <button data-tab="pacientes">Pacientes (ITAS)</button>
+      <button data-tab="procedimentos">Procedimentos</button>
+      <button data-tab="estoque">Estoque</button>
+      <button data-tab="relatorios">Relatórios</button>
+    </nav>
+  </header>
+
+  <div class="filter-bar">
+    <label>Filtrar Profissional:</label>
+    <select id="global-prof-filter">
+      <option value="TODOS">Visão Geral (Todas as Profissionais)</option>
+      <option value="Marina">Dra. Marina</option>
+      <option value="Nathallia">Dra. Nathallia</option>
+    </select>
+  </div>
+
+  <section class="view active" id="view-painel">
+    <div class="grid-summary" id="summary-cards"></div>
+
+    <div class="card">
+      <h2>Avisos de Aplicação & Lembretes WhatsApp (MSG)</h2>
+      <p class="subtle">Pacientes com aplicações agendadas para os próximos 15 dias. Envie o lembrete e marque o envio.</p>
+      <div class="list" id="alerts-list"></div>
+    </div>
+
+    <div class="card">
+      <h2>Produtos com Estoque Baixo</h2>
+      <p class="subtle">Exclui da contagem crítica os pacientes que já possuem marcação "Tem Aqui".</p>
+      <div class="list" id="stock-alert-list"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-pacientes">
+    <div class="card">
+      <h2 id="paciente-form-title">Cadastrar Paciente / Contrato (ITAS & IMUNO)</h2>
+      <p class="subtle">Preencha os dados conforme os controles de Datas, Composto e Pacotes Fechados.</p>
+      <form class="grid-form" id="form-paciente">
+        <input type="hidden" id="paciente-id">
+        <div class="field span2">
+          <label>Nome do Paciente</label>
+          <input type="text" id="paciente-nome" required placeholder="Nome completo">
+        </div>
+        <div class="field">
+          <label>Profissional Responsável</label>
+          <select id="paciente-prof" required>
+            <option value="Marina">Dra. Marina</option>
+            <option value="Nathallia">Dra. Nathallia</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>WhatsApp (DDD + Número)</label>
+          <input type="text" id="paciente-contato" placeholder="Ex: 17999999999">
+        </div>
+        <div class="field">
+          <label>Data que Fechou (Contrato)</label>
+          <input type="date" id="paciente-datafechou">
+        </div>
+        <div class="field">
+          <label>Início do Tratamento (Entrega)</label>
+          <input type="date" id="paciente-inicio" required>
+        </div>
+        <div class="field span2">
+          <label>Composto (Fórmula / Descrição do Imunoterápico)</label>
+          <input type="text" id="paciente-composto" placeholder="Ex: Composto padrão antialérgico">
+        </div>
+        <div class="field span2">
+          <label>Procedimento Vinculado</label>
+          <select id="paciente-procedimento" required></select>
+        </div>
+        <div class="field">
+          <label>Total de Doses Fechadas</label>
+          <input type="number" id="paciente-qtddoses" min="1" value="6" required>
+        </div>
+        <div class="field">
+          <label>Intervalo entre Doses (Meses)</label>
+          <input type="number" id="paciente-periodo" min="1" value="1" required>
+        </div>
+        <div class="field span2">
+          <div class="checkbox-wrap">
+            <input type="checkbox" id="paciente-temaqui">
+            <label for="paciente-temaqui">Dose deste paciente já está guardada na clínica ("TEM AQUI")</label>
+          </div>
+        </div>
+        <div class="field span2">
+          <label>Observações</label>
+          <textarea id="paciente-obs" rows="2" placeholder="Notas importantes..."></textarea>
+        </div>
+        <div class="field span2" style="align-self:end;">
+          <button type="submit" class="btn coral" id="paciente-submit-btn">Salvar Paciente</button>
+        </div>
+      </form>
+      <div id="paciente-cancel-wrap" style="display:none;margin-top:10px;">
+        <button class="btn ghost small" id="paciente-cancel-edit" type="button">Cancelar edição</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Pacientes Cadastrados (ITAS)</h2>
+      <div class="list" id="pacientes-list"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-procedimentos">
+    <div class="card">
+      <h2 id="proc-form-title">Cadastrar Procedimento / Pacote</h2>
+      <form class="grid-form" id="form-procedimento">
+        <input type="hidden" id="proc-id">
+        <div class="field span2">
+          <label>Nome do Procedimento</label>
+          <input type="text" id="proc-nome" required placeholder="Ex: Imuno 6 Meses">
+        </div>
+        <div class="field span2">
+          <label>Produto Vinculado no Estoque</label>
+          <select id="proc-produto"></select>
+        </div>
+        <div class="field">
+          <label>Intervalo Padrão (Meses)</label>
+          <input type="number" id="proc-periodo" min="1" value="1" required>
+        </div>
+        <div class="field">
+          <label>Ciclo de Cobrança</label>
+          <select id="proc-ciclo">
+            <option value="6">A cada 6 meses</option>
+            <option value="12">A cada 1 ano</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Valor do Ciclo (R$)</label>
+          <input type="number" id="proc-valor" min="0" step="0.01" value="0" required>
+        </div>
+        <div class="field" style="align-self:end;">
+          <button type="submit" class="btn coral" id="proc-submit-btn">Salvar Procedimento</button>
+        </div>
+      </form>
+      <div id="proc-cancel-wrap" style="display:none;margin-top:10px;">
+        <button class="btn ghost small" id="proc-cancel-edit" type="button">Cancelar edição</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Procedimentos Cadastrados</h2>
+      <div class="list" id="procedimentos-list"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-estoque">
+    <div class="card">
+      <h2 id="estoque-form-title">Cadastrar Produto no Estoque Geral</h2>
+      <form class="grid-form" id="form-estoque">
+        <input type="hidden" id="estoque-id">
+        <div class="field span2">
+          <label>Nome do Produto</label>
+          <input type="text" id="estoque-nome" required placeholder="Ex: Frasco Imunoterápico">
+        </div>
+        <div class="field">
+          <label>Quantidade Atual</label>
+          <input type="number" id="estoque-qtd" min="0" value="0" required>
+        </div>
+        <div class="field">
+          <label>Quantidade Mínima Alerta</label>
+          <input type="number" id="estoque-min" min="0" value="1" required>
+        </div>
+        <div class="field">
+          <label>Preço de Custo (R$)</label>
+          <input type="number" id="estoque-custo" min="0" step="0.01" value="0" required>
+        </div>
+        <div class="field" style="align-self:end;">
+          <button type="submit" class="btn coral" id="estoque-submit-btn">Salvar Produto</button>
+        </div>
+      </form>
+      <div id="estoque-cancel-wrap" style="display:none;margin-top:10px;">
+        <button class="btn ghost small" id="estoque-cancel-edit" type="button">Cancelar edição</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Produtos em Estoque</h2>
+      <div class="list" id="estoque-list"></div>
+    </div>
+  </section>
+
+  <section class="view" id="view-relatorios">
+    <div class="card">
+      <h2>Relatório Mensal Integrado</h2>
+      <p class="subtle">Visão de atendimentos, doses aplicadas e movimentação de pacientes das planilhas.</p>
+      <div class="field" style="max-width:220px;">
+        <label>Mês de Referência</label>
+        <input type="month" id="relatorio-mes">
+      </div>
+    </div>
+    <div class="grid-summary" id="relatorio-cards"></div>
+  </section>
+
+  <footer class="foot" style="text-align:center;color:var(--ink-soft);font-size:12px;padding-top:30px;">SETA · Controle Clínico Integrado</footer>
+</div>
+</div>
+
+<script>
+const ADMIN_PASSWORD = 'raquel1160';
+
+const loginScreen = document.getElementById('login-screen');
+const appShellWrap = document.getElementById('app-shell-wrap');
+const formLogin = document.getElementById('form-login');
+const loginError = document.getElementById('login-error');
+
+if(sessionStorage.getItem('seta_autenticado')==='sim'){
+  loginScreen.style.display='none';
+  appShellWrap.style.display='block';
+}
+
+formLogin.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const senha = document.getElementById('login-senha').value;
+  if(senha === ADMIN_PASSWORD){
+    sessionStorage.setItem('seta_autenticado','sim');
+    loginScreen.style.display='none';
+    appShellWrap.style.display='block';
+    renderAll();
+  } else {
+    loginError.style.display='block';
+    document.getElementById('login-senha').value='';
+    document.getElementById('login-senha').focus();
+  }
+});
+
+const loadAll = (key) => { try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } };
+const saveAll = (key, data) => localStorage.setItem(key, JSON.stringify(data));
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+
+let pacientes = loadAll('seta_pacientes');
+let procedimentos = loadAll('seta_procedimentos');
+let estoque = loadAll('seta_estoque');
+
+function syncDoses(paciente){
+  let partes = paciente.inicio.split('-');
+  let start = new Date(partes[0], partes[1] - 1, partes[2]);
+  const oldDoses = paciente.doses || [];
+  const proc = procedimentos.find(p=>p.id===paciente.procedimentoId);
+  const intervalo = proc ? parseInt(proc.periodo) : (parseInt(paciente.periodo) || 1);
+  const limit = paciente.qtdDoses || 6;
+  
+  let newDoses = [];
+  let cursor = new Date(start);
+  for(let i=0; i<limit; i++){
+    let y = cursor.getFullYear();
+    let m = String(cursor.getMonth() + 1).padStart(2, '0');
+    let d = String(cursor.getDate()).padStart(2, '0');
+    let dateStr = `${y}-${m}-${d}`;
+    
+    let old = oldDoses.find(x => x.indice === i);
+    newDoses.push(old || { indice: i, data: dateStr, aplicada: false, dataAplicacao: null, msgEnviada: false });
+    cursor.setMonth(cursor.getMonth() + intervalo);
+  }
+  paciente.doses = newDoses;
+}
+
+const fmt = (dStr) => { 
+  if(!dStr) return '—';
+  let partes = dStr.split('-');
+  return `${partes[2]}/${partes[1]}/${partes[0]}`;
+};
+
+const daysBetween = (dStr) => {
+  let partes = dStr.split('-');
+  let dDate = new Date(partes[0], partes[1] - 1, partes[2]).getTime();
+  let hoje = new Date();
+  hoje.setHours(0,0,0,0);
+  return Math.round((dDate - hoje.getTime())/86400000);
+};
+
+document.querySelectorAll('nav.tabs button').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('nav.tabs button, section.view').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active'); document.getElementById('view-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('global-prof-filter').addEventListener('change', renderAll);
+function getFilteredPacientes() {
+  const prof = document.getElementById('global-prof-filter').value;
+  return prof === 'TODOS' ? pacientes : pacientes.filter(p => p.profissional === prof);
+}
+
+window.marcarDoseAplicada = function(pId, dIdx){
+  const p = pacientes.find(x=>x.id===pId);
+  if(!p) return;
+  p.doses[dIdx].aplicada = true;
+  p.doses[dIdx].dataAplicacao = new Date().toISOString().slice(0,10);
+  
+  if(!p.temAqui) { 
+    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
+    const prod = proc ? estoque.find(x=>x.id===proc.produtoId) : null;
+    if(prod){ prod.quantidade = Math.max(0, prod.quantidade - 1); saveAll('seta_estoque', estoque); }
+  }
+  saveAll('seta_pacientes', pacientes); renderAll();
+};
+
+window.undoDose = function(pId, dIdx){
+  const p = pacientes.find(x=>x.id===pId);
+  if(!p || !p.doses[dIdx].aplicada) return;
+  if(!confirm('Desfazer esta aplicação?')) return;
+  p.doses[dIdx].aplicada = false;
+  p.doses[dIdx].dataAplicacao = null;
+  
+  if(!p.temAqui) {
+    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
+    const prod = proc ? estoque.find(x=>x.id===proc.produtoId) : null;
+    if(prod){ prod.quantidade = Number(prod.quantidade) + 1; saveAll('seta_estoque', estoque); }
+  }
+  saveAll('seta_pacientes', pacientes); renderAll();
+};
+
+window.dispararZap = function(pId, dIdx){
+  const p = pacientes.find(x=>x.id===pId);
+  if(!p) return;
+  p.doses[dIdx].msgEnviada = true;
+  saveAll('seta_pacientes', pacientes);
+  const fone = p.contato ? p.contato.replace(/\D/g,'') : '';
+  if(fone) {
+    const text = encodeURIComponent(`Olá ${p.nome}, lembrete da sua ${dIdx+1}ª aplicação agendada para ${fmt(p.doses[dIdx].data)} na clínica SETA.`);
+    window.open(`https://wa.me/55${fone}?text=${text}`, '_blank');
+  } else {
+    alert('Paciente sem número de WhatsApp cadastrado, mas marcado como enviado.');
+  }
+  renderAll();
+};
+
+window.deleteObj = function(key, id) {
+  if(!confirm('Deseja realmente excluir este registro?')) return;
+  if(key==='seta_pacientes') pacientes = pacientes.filter(x=>x.id!==id);
+  if(key==='seta_procedimentos') procedimentos = procedimentos.filter(x=>x.id!==id);
+  if(key==='seta_estoque') estoque = estoque.filter(x=>x.id!==id);
+  saveAll(key, key==='seta_pacientes'?pacientes:(key==='seta_procedimentos'?procedimentos:estoque));
+  renderAll();
+};
+
+function renderSelects() {
+  const selProc = document.getElementById('paciente-procedimento');
+  selProc.innerHTML = procedimentos.length ? procedimentos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('') : '<option value="">Cadastre um procedimento primeiro</option>';
+  
+  const selProd = document.getElementById('proc-produto');
+  selProd.innerHTML = '<option value="">Nenhum produto vinculado</option>' + estoque.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+}
+
+function renderPacientes(){
+  const list = document.getElementById('pacientes-list');
+  const filtrados = getFilteredPacientes();
+  if(filtrados.length === 0){
+    list.innerHTML = `<div class="empty" style="text-align:center;padding:30px;color:var(--ink-soft);">Nenhum paciente cadastrado.</div>`;
+    return;
+  }
+  list.innerHTML = filtrados.map(p=>{
+    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
+    const badgeProf = p.profissional === 'Marina' ? '<span class="badge marina">Dra. Marina</span>' : '<span class="badge nath">Dra. Nathallia</span>';
+    const tagTemAqui = p.temAqui ? '<span class="badge ok">✓ Tem Aqui</span>' : '';
+    const aplicadas = p.doses.filter(d=>d.aplicada).length;
+    
+    const dosesHtml = p.doses.map((d, i)=>{
+      if(d.aplicada) return `<span class="dose-chip aplicada">Dose ${i+1}: ✓ ${fmt(d.dataAplicacao)} <button type="button" style="border:none;background:none;color:var(--green);cursor:pointer;font-weight:bold;" onclick="undoDose('${p.id}',${i})">×</button></span>`;
+      return `<button type="button" class="dose-chip pendente" onclick="marcarDoseAplicada('${p.id}',${i})">Dose ${i+1} (${fmt(d.data)}) - Aplicar</button>`;
+    }).join('');
+
+    return `
+    <div class="row-card ok">
+      <div class="row-main">
+        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+          <strong>${p.nome}</strong> ${badgeProf} ${tagTemAqui}
+        </div>
+        <span class="row-meta">Composto: <strong>${p.composto || 'Não informado'}</strong> · Proc: ${proc?proc.nome:'—'}</span>
+        <span class="row-meta">Fechou em: ${fmt(p.dataFechou)} | Início: ${fmt(p.inicio)} | Progresso: ${aplicadas}/${p.qtdDoses} doses</span>
+        ${p.obs ? `<span class="row-meta">Obs: ${p.obs}</span>` : ''}
+        <div class="doses-wrap">${dosesHtml}</div>
+      </div>
+      <div class="row-actions">
+        <button type="button" class="btn ghost small" onclick="editPaciente('${p.id}')">Editar</button>
+        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_pacientes','${p.id}')">Excluir</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function renderPainel(){
+  const filtrados = getFilteredPacientes();
+  let avisos = [];
+  
+  filtrados.forEach(p => {
+    const pendenteIdx = p.doses.findIndex(d => !d.aplicada);
+    if(pendenteIdx !== -1){
+      const dose = p.doses[pendenteIdx];
+      const days = daysBetween(dose.data);
+      if(days <= 15) { avisos.push({ p, dose, doseIdx: pendenteIdx, days }); }
+    }
+  });
+
+  avisos.sort((a,b) => a.days - b.days);
+
+  const list = document.getElementById('alerts-list');
+  list.innerHTML = avisos.map(a => {
+    const status = a.days < 0 ? 'urgente' : (a.days <= 7 ? 'atencao' : 'ok');
+    const badgeProf = a.p.profissional === 'Marina' ? '<span class="badge marina">Marina</span>' : '<span class="badge nath">Nathallia</span>';
+    let btnZap = a.dose.msgEnviada 
+      ? `<button type="button" class="btn zap small" disabled>✓ Msg Enviada</button>`
+      : `<button type="button" class="btn zap small" onclick="dispararZap('${a.p.id}', ${a.doseIdx})">Enviar WhatsApp (MSG)</button>`;
+
+    return `
+    <div class="row-card ${status}">
+      <div class="row-main">
+        <div><strong>${a.p.nome}</strong> ${badgeProf}</div>
+        <span class="row-meta">Dose ${a.doseIdx+1} (${a.p.composto||''}) marcada para ${fmt(a.dose.data)} (${a.days} dias)</span>
+      </div>
+      <div class="row-actions">
+        ${btnZap}
+        <button type="button" class="btn ghost small" onclick="marcarDoseAplicada('${a.p.id}', ${a.doseIdx})">Aplicar</button>
+      </div>
+    </div>`;
+  }).join('') || '<div style="color:var(--ink-soft);font-size:14px;padding:10px;">Nenhum aviso pendente para os próximos 15 dias.</div>';
+
+  const estoqueBaixoCount = estoque.filter(e => e.quantidade <= e.minimo).length;
+  document.getElementById('summary-cards').innerHTML = `
+    <div class="stat"><div class="num">${filtrados.length}</div><div class="label">Pacientes Ativos</div></div>
+    <div class="stat atencao"><div class="num">${avisos.length}</div><div class="label">Avisos Próximos</div></div>
+    <div class="stat estoque"><div class="num">${estoqueBaixoCount}</div><div class="label">Estoque Crítico</div></div>
+  `;
+
+  document.getElementById('stock-alert-list').innerHTML = estoque.filter(e => e.quantidade <= e.minimo).map(e => `
+    <div class="row-card critico">
+      <div class="row-main"><strong>${e.nome}</strong><span class="row-meta">Atual: ${e.quantidade} | Mínimo: ${e.minimo}</span></div>
+      <span class="badge critico">Repor</span>
+    </div>
+  `).join('') || '<div style="color:var(--ink-soft);font-size:14px;padding:10px;">Todo o estoque está adequado.</div>';
+}
+
+function renderEstoque() {
+  document.getElementById('estoque-list').innerHTML = estoque.map(e=>`
+    <div class="row-card ${e.quantidade <= e.minimo ? 'critico' : 'ok'}">
+      <div class="row-main"><strong>${e.nome}</strong><span class="row-meta">Quantidade: ${e.quantidade} | Mínimo: ${e.minimo} | Custo: R$ ${e.custo||0}</span></div>
+      <div class="row-actions">
+        <button type="button" class="btn ghost small" onclick="editEstoque('${e.id}')">Editar</button>
+        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_estoque','${e.id}')">Excluir</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum produto cadastrado.</div>';
+    
+  document.getElementById('procedimentos-list').innerHTML = procedimentos.map(p=>`
+    <div class="row-card ok">
+      <div class="row-main"><strong>${p.nome}</strong><span class="row-meta">Intervalo: ${p.periodo} meses · Valor Ciclo: R$ ${p.valor||0}</span></div>
+      <div class="row-actions">
+        <button type="button" class="btn ghost small" onclick="editProcedimento('${p.id}')">Editar</button>
+        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_procedimentos','${p.id}')">Excluir</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum procedimento cadastrado.</div>';
+}
+
+function renderRelatorio(){
+  const inp = document.getElementById('relatorio-mes');
+  if(!inp.value){
+    let now = new Date();
+    inp.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
+  }
+  document.getElementById('relatorio-cards').innerHTML = `
+    <div class="stat"><div class="num">${pacientes.length}</div><div class="label">Total Geral Cadastrado</div></div>
+  `;
+}
+
+function renderAll() { renderSelects(); renderPacientes(); renderEstoque(); renderPainel(); renderRelatorio(); }
+
+// Formulários
+document.getElementById('form-paciente').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  let id = document.getElementById('paciente-id').value;
+  let existente = id ? pacientes.find(x=>x.id===id) : null;
+  
+  let p = {
+    id: id || uid(),
+    nome: document.getElementById('paciente-nome').value,
+    profissional: document.getElementById('paciente-prof').value,
+    contato: document.getElementById('paciente-contato').value,
+    dataFechou: document.getElementById('paciente-datafechou').value,
+    inicio: document.getElementById('paciente-inicio').value,
+    composto: document.getElementById('paciente-composto').value,
+    procedimentoId: document.getElementById('paciente-procedimento').value,
+    qtdDoses: parseInt(document.getElementById('paciente-qtddoses').value) || 6,
+    periodo: parseInt(document.getElementById('paciente-periodo').value) || 1,
+    temAqui: document.getElementById('paciente-temaqui').checked,
+    obs: document.getElementById('paciente-obs').value,
+    doses: existente ? existente.doses : []
+  };
+  
+  syncDoses(p);
+  if(id){ pacientes = pacientes.map(x => x.id===id ? p : x); } else { pacientes.push(p); }
+  saveAll('seta_pacientes', pacientes);
+  resetPacienteForm(); renderAll(); alert('Paciente salvo com sucesso!');
+});
+
+function resetPacienteForm(){
+  document.getElementById('form-paciente').reset();
+  document.getElementById('paciente-id').value = '';
+  document.getElementById('paciente-form-title').textContent = 'Cadastrar Paciente / Contrato (ITAS & IMUNO)';
+  document.getElementById('paciente-submit-btn').textContent = 'Salvar Paciente';
+  document.getElementById('paciente-cancel-wrap').style.display = 'none';
+}
+document.getElementById('paciente-cancel-edit').addEventListener('click', resetPacienteForm);
+
+window.editPaciente = function(id){
+  let p = pacientes.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('paciente-id').value = p.id;
+  document.getElementById('paciente-nome').value = p.nome;
+  document.getElementById('paciente-prof').value = p.profissional;
+  document.getElementById('paciente-contato').value = p.contato || '';
+  document.getElementById('paciente-datafechou').value = p.dataFechou || '';
+  document.getElementById('paciente-inicio').value = p.inicio || '';
+  document.getElementById('paciente-composto').value = p.composto || '';
+  document.getElementById('paciente-procedimento').value = p.procedimentoId || '';
+  document.getElementById('paciente-qtddoses').value = p.qtdDoses || 6;
+  document.getElementById('paciente-periodo').value = p.periodo || 1;
+  document.getElementById('paciente-temaqui').checked = p.temAqui || false;
+  document.getElementById('paciente-obs').value = p.obs || '';
+  
+  document.getElementById('paciente-form-title').textContent = 'Editar Paciente';
+  document.getElementById('paciente-submit-btn').textContent = 'Salvar Alterações';
+  document.getElementById('paciente-cancel-wrap').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+
+document.getElementById('form-procedimento').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  let id = document.getElementById('proc-id').value;
+  let data = {
+    id: id || uid(),
+    nome: document.getElementById('proc-nome').value,
+    produtoId: document.getElementById('proc-produto').value,
+    periodo: parseInt(document.getElementById('proc-periodo').value) || 1,
+    cicloCobranca: parseInt(document.getElementById('proc-ciclo').value) || 6,
+    valor: parseFloat(document.getElementById('proc-valor').value) || 0
+  };
+  if(id){ procedimentos = procedimentos.map(x=>x.id===id?data:x); } else { procedimentos.push(data); }
+  saveAll('seta_procedimentos', procedimentos);
+  e.target.reset(); document.getElementById('proc-id').value='';
+  document.getElementById('proc-cancel-wrap').style.display='none';
+  renderAll(); alert('Procedimento salvo!');
+});
+
+window.editProcedimento = function(id){
+  let p = procedimentos.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('proc-id').value = p.id;
+  document.getElementById('proc-nome').value = p.nome;
+  document.getElementById('proc-produto').value = p.produtoId || '';
+  document.getElementById('proc-periodo').value = p.periodo;
+  document.getElementById('proc-ciclo').value = p.cicloCobranca || 6;
+  document.getElementById('proc-valor').value = p.valor || 0;
+  document.getElementById('proc-form-title').textContent = 'Editar Procedimento';
+  document.getElementById('proc-submit-btn').textContent = 'Salvar Alterações';
+  document.getElementById('proc-cancel-wrap').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+document.getElementById('proc-cancel-edit').addEventListener('click', ()=>{
+  document.getElementById('form-procedimento').reset();
+  document.getElementById('proc-id').value='';
+  document.getElementById('proc-form-title').textContent='Cadastrar Procedimento / Pacote';
+  document.getElementById('proc-submit-btn').textContent='Salvar Procedimento';
+  document.getElementById('proc-cancel-wrap').style.display='none';
+});
+
+document.getElementById('form-estoque').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  let id = document.getElementById('estoque-id').value;
+  let data = {
+    id: id || uid(),
+    nome: document.getElementById('estoque-nome').value,
+    quantidade: parseInt(document.getElementById('estoque-qtd').value) || 0,
+    minimo: parseInt(document.getElementById('estoque-min').value) || 1,
+    custo: parseFloat(document.getElementById('estoque-custo').value) || 0
+  };
+  if(id){ estoque = estoque.map(x=>x.id===id?data:x); } else { estoque.push(data); }
+  saveAll('seta_estoque', estoque);
+  e.target.reset(); document.getElementById('estoque-id').value='';
+  document.getElementById('estoque-cancel-wrap').style.display='none';
+  renderAll(); alert('Produto salvo no estoque!');
+});
+
+window.editEstoque = function(id){
+  let p = estoque.find(x=>x.id===id);
+  if(!p) return;
+  document.getElementById('estoque-id').value = p.id;
+  document.getElementById('estoque-nome').value = p.nome;
+  document.getElementById('estoque-qtd').value = p.quantidade;
+  document.getElementById('estoque-min').value = p.minimo;
+  document.getElementById('estoque-custo').value = p.custo || 0;
+  document.getElementById('estoque-form-title').textContent = 'Editar Produto';
+  document.getElementById('estoque-submit-btn').textContent = 'Salvar Alterações';
+  document.getElementById('estoque-cancel-wrap').style.display = 'block';
+  window.scrollTo({top:0, behavior:'smooth'});
+};
+document.getElementById('estoque-cancel-edit').addEventListener('click', ()=>{
+  document.getElementById('form-estoque').reset();
+  document.getElementById('estoque-id').value='';
+  document.getElementById('estoque-form-title').textContent='Cadastrar Produto no Estoque Geral';
+  document.getElementById('estoque-submit-btn').textContent='Salvar Produto';
+  document.getElementById('estoque-cancel-wrap').style.display='none';
+});
+
+document.getElementById('relatorio-mes').addEventListener('change', renderRelatorio);
+
+renderAll();
+</script>
+</body>
+</html>
