@@ -96,11 +96,11 @@
 <div id="login-screen">
   <div class="login-card">
     <h1>SETA</h1>
-    <p>Acesso restrito ao administrador</p>
+    <p>Acesso restrito</p>
     <form id="form-login">
       <div class="field" style="text-align:left;">
         <label>Senha</label>
-        <input type="password" id="login-senha" required placeholder="Digite a senha">
+        <input type="password" id="login-senha" required placeholder="Digite sua senha">
       </div>
       <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
       <button type="submit" class="btn coral" style="width:100%; margin-top:15px;">Entrar</button>
@@ -124,6 +124,7 @@
       <button data-tab="procedimentos">Procedimentos</button>
       <button data-tab="estoque">Estoque</button>
       <button data-tab="relatorios">Relatórios</button>
+      <button data-tab="usuarios" id="tab-usuarios-btn" style="display:none;">Usuários</button>
     </nav>
   </header>
 
@@ -131,8 +132,6 @@
     <label>Filtrar Profissional:</label>
     <select id="global-prof-filter">
       <option value="TODOS">Visão Geral (Todas as Profissionais)</option>
-      <option value="Marina">Dra. Marina</option>
-      <option value="Nathallia">Dra. Nathallia</option>
     </select>
   </div>
 
@@ -155,7 +154,7 @@
   <section class="view" id="view-pacientes">
     <div class="card">
       <h2 id="paciente-form-title">Cadastrar Paciente / Contrato (ITAS & IMUNO)</h2>
-      <p class="subtle">Preencha os dados conforme os controles de Datas, Composto e Pacotes Fechados.</p>
+      <p class="subtle">Preencha os dados e adicione quantas datas de doses forem necessárias.</p>
       <form class="grid-form" id="form-paciente">
         <input type="hidden" id="paciente-id">
         <div class="field span2">
@@ -164,10 +163,7 @@
         </div>
         <div class="field">
           <label>Profissional Responsável</label>
-          <select id="paciente-prof" required>
-            <option value="Marina">Dra. Marina</option>
-            <option value="Nathallia">Dra. Nathallia</option>
-          </select>
+          <select id="paciente-prof" required></select>
         </div>
         <div class="field">
           <label>WhatsApp (DDD + Número)</label>
@@ -189,14 +185,15 @@
           <label>Procedimento Vinculado</label>
           <select id="paciente-procedimento" required></select>
         </div>
-        <div class="field">
-          <label>Total de Doses Fechadas</label>
-          <input type="number" id="paciente-qtddoses" min="1" value="6" required>
+
+        <div class="field span2" style="background:var(--paper-alt); padding:14px; border-radius:10px; border:1px solid var(--line);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <label style="margin:0;">Datas das Próximas Doses</label>
+            <button type="button" class="btn small coral" onclick="adicionarCampoDose()">+ Adicionar Dose</button>
+          </div>
+          <div id="container-doses-dinamicas" style="display:flex; flex-direction:column; gap:8px;"></div>
         </div>
-        <div class="field">
-          <label>Intervalo entre Doses (Meses)</label>
-          <input type="number" id="paciente-periodo" min="1" value="1" required>
-        </div>
+
         <div class="field span2">
           <div class="checkbox-wrap">
             <input type="checkbox" id="paciente-temaqui">
@@ -229,15 +226,11 @@
         <input type="hidden" id="proc-id">
         <div class="field span2">
           <label>Nome do Procedimento</label>
-          <input type="text" id="proc-nome" required placeholder="Ex: Imuno 6 Meses">
+          <input type="text" id="proc-nome" required placeholder="Ex: Imuno Pacote">
         </div>
         <div class="field span2">
           <label>Produto Vinculado no Estoque</label>
           <select id="proc-produto"></select>
-        </div>
-        <div class="field">
-          <label>Intervalo Padrão (Meses)</label>
-          <input type="number" id="proc-periodo" min="1" value="1" required>
         </div>
         <div class="field">
           <label>Ciclo de Cobrança</label>
@@ -311,37 +304,41 @@
     <div class="grid-summary" id="relatorio-cards"></div>
   </section>
 
+  <section class="view" id="view-usuarios">
+    <div class="card">
+      <h2>Cadastrar Nova Profissional / Integrante</h2>
+      <p class="subtle">Adicione novos usuários para acessar o sistema com senha individual.</p>
+      <form class="grid-form" id="form-usuario">
+        <div class="field span2">
+          <label>Nome da Profissional</label>
+          <input type="text" id="usuario-nome" required placeholder="Ex: Dra. Marina">
+        </div>
+        <div class="field span2">
+          <label>Senha de Acesso</label>
+          <input type="text" id="usuario-senha" required placeholder="Senha individual">
+        </div>
+        <div class="field span2" style="align-self:end;">
+          <button type="submit" class="btn coral">Salvar Usuário</button>
+        </div>
+      </form>
+    </div>
+    <div class="card">
+      <h2>Usuários Cadastrados</h2>
+      <div class="list" id="usuarios-list"></div>
+    </div>
+  </section>
+
   <footer class="foot" style="text-align:center;color:var(--ink-soft);font-size:12px;padding-top:30px;">SETA · Controle Clínico Integrado</footer>
 </div>
 </div>
 
 <script>
-const ADMIN_PASSWORD = 'raquel1160';
+const ADMIN_PASSWORD_MASTER = 'raquel1160';
 
 const loginScreen = document.getElementById('login-screen');
 const appShellWrap = document.getElementById('app-shell-wrap');
 const formLogin = document.getElementById('form-login');
 const loginError = document.getElementById('login-error');
-
-if(sessionStorage.getItem('seta_autenticado')==='sim'){
-  loginScreen.style.display='none';
-  appShellWrap.style.display='block';
-}
-
-formLogin.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const senha = document.getElementById('login-senha').value;
-  if(senha === ADMIN_PASSWORD){
-    sessionStorage.setItem('seta_autenticado','sim');
-    loginScreen.style.display='none';
-    appShellWrap.style.display='block';
-    renderAll();
-  } else {
-    loginError.style.display='block';
-    document.getElementById('login-senha').value='';
-    document.getElementById('login-senha').focus();
-  }
-});
 
 const loadAll = (key) => { try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } };
 const saveAll = (key, data) => localStorage.setItem(key, JSON.stringify(data));
@@ -350,28 +347,84 @@ const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6
 let pacientes = loadAll('seta_pacientes');
 let procedimentos = loadAll('seta_procedimentos');
 let estoque = loadAll('seta_estoque');
+let usuarios = loadAll('seta_usuarios');
 
-function syncDoses(paciente){
-  let partes = paciente.inicio.split('-');
-  let start = new Date(partes[0], partes[1] - 1, partes[2]);
-  const oldDoses = paciente.doses || [];
-  const proc = procedimentos.find(p=>p.id===paciente.procedimentoId);
-  const intervalo = proc ? parseInt(proc.periodo) : (parseInt(paciente.periodo) || 1);
-  const limit = paciente.qtdDoses || 6;
-  
-  let newDoses = [];
-  let cursor = new Date(start);
-  for(let i=0; i<limit; i++){
-    let y = cursor.getFullYear();
-    let m = String(cursor.getMonth() + 1).padStart(2, '0');
-    let d = String(cursor.getDate()).padStart(2, '0');
-    let dateStr = `${y}-${m}-${d}`;
+// Inicializa com usuárias padrão se a lista estiver vazia
+if(usuarios.length === 0){
+  usuarios = [
+    { id: uid(), nome: 'Marina', senha: '' },
+    { id: uid(), nome: 'Nathallia', senha: '' }
+  ];
+  saveAll('seta_usuarios', usuarios);
+}
+
+function checkAuth(){
+  const auth = sessionStorage.getItem('seta_autenticado');
+  if(auth === 'sim'){
+    loginScreen.style.display='none';
+    appShellWrap.style.display='block';
     
-    let old = oldDoses.find(x => x.indice === i);
-    newDoses.push(old || { indice: i, data: dateStr, aplicada: false, dataAplicacao: null, msgEnviada: false });
-    cursor.setMonth(cursor.getMonth() + intervalo);
+    const isMaster = sessionStorage.getItem('seta_master') === 'sim';
+    const tabUsuarios = document.getElementById('tab-usuarios-btn');
+    if(tabUsuarios){
+      tabUsuarios.style.display = isMaster ? 'block' : 'none';
+    }
+    renderAll();
   }
+}
+checkAuth();
+
+formLogin.addEventListener('submit', (e)=>{
+  e.preventDefault();
+  const senha = document.getElementById('login-senha').value;
+  
+  if(senha === ADMIN_PASSWORD_MASTER){
+    sessionStorage.setItem('seta_autenticado','sim');
+    sessionStorage.setItem('seta_master','sim');
+    checkAuth();
+  } else {
+    const usuarioEncontrado = usuarios.find(u => u.senha && u.senha === senha);
+    if(usuarioEncontrado){
+      sessionStorage.setItem('seta_autenticado','sim');
+      sessionStorage.setItem('seta_master','nao');
+      checkAuth();
+    } else {
+      loginError.style.display='block';
+      document.getElementById('login-senha').value='';
+      document.getElementById('login-senha').focus();
+    }
+  }
+});
+
+function adicionarCampoDose(dataValor = '') {
+  const container = document.getElementById('container-doses-dinamicas');
+  const div = document.createElement('div');
+  div.style.cssText = 'display:flex; gap:8px; align-items:center;';
+  div.innerHTML = `
+    <input type="date" class="input-dose-dinamica" value="${dataValor}" style="flex:1; font-family:'Space Grotesk'; font-size:14.5px; padding:8px 12px; border:1.5px solid var(--line); border-radius:9px; background:var(--paper); color:var(--ink);" required>
+    <button type="button" class="btn danger-ghost small" onclick="this.parentElement.remove()" style="padding:8px 12px;">Remover</button>
+  `;
+  container.appendChild(div);
+}
+
+function syncDosesFromInputs(paciente){
+  const inputs = document.querySelectorAll('.input-dose-dinamica');
+  const oldDoses = paciente.doses || [];
+  let newDoses = [];
+  
+  inputs.forEach((input, i) => {
+    if(!input.value) return;
+    let old = oldDoses[i];
+    newDoses.push({
+      indice: i,
+      data: input.value,
+      aplicada: old ? old.aplicada : false,
+      dataAplicacao: old ? old.dataAplicacao : null,
+      msgEnviada: old ? old.msgEnviada : false
+    });
+  });
   paciente.doses = newDoses;
+  paciente.qtdDoses = newDoses.length;
 }
 
 const fmt = (dStr) => { 
@@ -450,11 +503,20 @@ window.deleteObj = function(key, id) {
   if(key==='seta_pacientes') pacientes = pacientes.filter(x=>x.id!==id);
   if(key==='seta_procedimentos') procedimentos = procedimentos.filter(x=>x.id!==id);
   if(key==='seta_estoque') estoque = estoque.filter(x=>x.id!==id);
-  saveAll(key, key==='seta_pacientes'?pacientes:(key==='seta_procedimentos'?procedimentos:estoque));
+  if(key==='seta_usuarios') usuarios = usuarios.filter(x=>x.id!==id);
+  saveAll(key, key==='seta_pacientes'?pacientes:(key==='seta_procedimentos'?procedimentos:(key==='seta_estoque'?estoque:usuarios)));
   renderAll();
 };
 
 function renderSelects() {
+  const selProf = document.getElementById('paciente-prof');
+  selProf.innerHTML = usuarios.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
+
+  const filterProf = document.getElementById('global-prof-filter');
+  const currentFilter = filterProf.value;
+  filterProf.innerHTML = '<option value="TODOS">Visão Geral (Todas as Profissionais)</option>' + usuarios.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
+  filterProf.value = currentFilter;
+
   const selProc = document.getElementById('paciente-procedimento');
   selProc.innerHTML = procedimentos.length ? procedimentos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('') : '<option value="">Cadastre um procedimento primeiro</option>';
   
@@ -471,11 +533,11 @@ function renderPacientes(){
   }
   list.innerHTML = filtrados.map(p=>{
     const proc = procedimentos.find(x=>x.id===p.procedimentoId);
-    const badgeProf = p.profissional === 'Marina' ? '<span class="badge marina">Dra. Marina</span>' : '<span class="badge nath">Dra. Nathallia</span>';
+    const badgeProf = `<span class="badge marina">${p.profissional}</span>`;
     const tagTemAqui = p.temAqui ? '<span class="badge ok">✓ Tem Aqui</span>' : '';
-    const aplicadas = p.doses.filter(d=>d.aplicada).length;
+    const aplicadas = (p.doses || []).filter(d=>d.aplicada).length;
     
-    const dosesHtml = p.doses.map((d, i)=>{
+    const dosesHtml = (p.doses || []).map((d, i)=>{
       if(d.aplicada) return `<span class="dose-chip aplicada">Dose ${i+1}: ✓ ${fmt(d.dataAplicacao)} <button type="button" style="border:none;background:none;color:var(--green);cursor:pointer;font-weight:bold;" onclick="undoDose('${p.id}',${i})">×</button></span>`;
       return `<button type="button" class="dose-chip pendente" onclick="marcarDoseAplicada('${p.id}',${i})">Dose ${i+1} (${fmt(d.data)}) - Aplicar</button>`;
     }).join('');
@@ -487,7 +549,7 @@ function renderPacientes(){
           <strong>${p.nome}</strong> ${badgeProf} ${tagTemAqui}
         </div>
         <span class="row-meta">Composto: <strong>${p.composto || 'Não informado'}</strong> · Proc: ${proc?proc.nome:'—'}</span>
-        <span class="row-meta">Fechou em: ${fmt(p.dataFechou)} | Início: ${fmt(p.inicio)} | Progresso: ${aplicadas}/${p.qtdDoses} doses</span>
+        <span class="row-meta">Fechou em: ${fmt(p.dataFechou)} | Início: ${fmt(p.inicio)} | Progresso: ${aplicadas}/${(p.doses||[]).length} doses</span>
         ${p.obs ? `<span class="row-meta">Obs: ${p.obs}</span>` : ''}
         <div class="doses-wrap">${dosesHtml}</div>
       </div>
@@ -504,6 +566,7 @@ function renderPainel(){
   let avisos = [];
   
   filtrados.forEach(p => {
+    if(!p.doses) return;
     const pendenteIdx = p.doses.findIndex(d => !d.aplicada);
     if(pendenteIdx !== -1){
       const dose = p.doses[pendenteIdx];
@@ -517,7 +580,7 @@ function renderPainel(){
   const list = document.getElementById('alerts-list');
   list.innerHTML = avisos.map(a => {
     const status = a.days < 0 ? 'urgente' : (a.days <= 7 ? 'atencao' : 'ok');
-    const badgeProf = a.p.profissional === 'Marina' ? '<span class="badge marina">Marina</span>' : '<span class="badge nath">Nathallia</span>';
+    const badgeProf = `<span class="badge marina">${a.p.profissional}</span>`;
     let btnZap = a.dose.msgEnviada 
       ? `<button type="button" class="btn zap small" disabled>✓ Msg Enviada</button>`
       : `<button type="button" class="btn zap small" onclick="dispararZap('${a.p.id}', ${a.doseIdx})">Enviar WhatsApp (MSG)</button>`;
@@ -562,12 +625,20 @@ function renderEstoque() {
     
   document.getElementById('procedimentos-list').innerHTML = procedimentos.map(p=>`
     <div class="row-card ok">
-      <div class="row-main"><strong>${p.nome}</strong><span class="row-meta">Intervalo: ${p.periodo} meses · Valor Ciclo: R$ ${p.valor||0}</span></div>
+      <div class="row-main"><strong>${p.nome}</strong><span class="row-meta">Ciclo: ${p.cicloCobranca} meses · Valor Ciclo: R$ ${p.valor||0}</span></div>
       <div class="row-actions">
         <button type="button" class="btn ghost small" onclick="editProcedimento('${p.id}')">Editar</button>
         <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_procedimentos','${p.id}')">Excluir</button>
       </div>
     </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum procedimento cadastrado.</div>';
+
+  document.getElementById('usuarios-list').innerHTML = usuarios.map(u=>`
+    <div class="row-card ok">
+      <div class="row-main"><strong>${u.nome}</strong><span class="row-meta">Senha: ${u.senha ? '••••••' : 'Sem senha'}</span></div>
+      <div class="row-actions">
+        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_usuarios','${u.id}')">Excluir</button>
+      </div>
+    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum usuário cadastrado.</div>';
 }
 
 function renderRelatorio(){
@@ -583,7 +654,17 @@ function renderRelatorio(){
 
 function renderAll() { renderSelects(); renderPacientes(); renderEstoque(); renderPainel(); renderRelatorio(); }
 
-// Formulários
+document.getElementById('form-usuario').addEventListener('submit', (e)=>{
+  e.preventDefault();
+  let nome = document.getElementById('usuario-nome').value;
+  let senha = document.getElementById('usuario-senha').value;
+  usuarios.push({ id: uid(), nome, senha });
+  saveAll('seta_usuarios', usuarios);
+  e.target.reset();
+  renderAll();
+  alert('Usuário cadastrado com sucesso!');
+});
+
 document.getElementById('form-paciente').addEventListener('submit', (e)=>{
   e.preventDefault();
   let id = document.getElementById('paciente-id').value;
@@ -598,14 +679,12 @@ document.getElementById('form-paciente').addEventListener('submit', (e)=>{
     inicio: document.getElementById('paciente-inicio').value,
     composto: document.getElementById('paciente-composto').value,
     procedimentoId: document.getElementById('paciente-procedimento').value,
-    qtdDoses: parseInt(document.getElementById('paciente-qtddoses').value) || 6,
-    periodo: parseInt(document.getElementById('paciente-periodo').value) || 1,
     temAqui: document.getElementById('paciente-temaqui').checked,
     obs: document.getElementById('paciente-obs').value,
     doses: existente ? existente.doses : []
   };
   
-  syncDoses(p);
+  syncDosesFromInputs(p);
   if(id){ pacientes = pacientes.map(x => x.id===id ? p : x); } else { pacientes.push(p); }
   saveAll('seta_pacientes', pacientes);
   resetPacienteForm(); renderAll(); alert('Paciente salvo com sucesso!');
@@ -613,6 +692,7 @@ document.getElementById('form-paciente').addEventListener('submit', (e)=>{
 
 function resetPacienteForm(){
   document.getElementById('form-paciente').reset();
+  document.getElementById('container-doses-dinamicas').innerHTML = '';
   document.getElementById('paciente-id').value = '';
   document.getElementById('paciente-form-title').textContent = 'Cadastrar Paciente / Contrato (ITAS & IMUNO)';
   document.getElementById('paciente-submit-btn').textContent = 'Salvar Paciente';
@@ -631,11 +711,15 @@ window.editPaciente = function(id){
   document.getElementById('paciente-inicio').value = p.inicio || '';
   document.getElementById('paciente-composto').value = p.composto || '';
   document.getElementById('paciente-procedimento').value = p.procedimentoId || '';
-  document.getElementById('paciente-qtddoses').value = p.qtdDoses || 6;
-  document.getElementById('paciente-periodo').value = p.periodo || 1;
   document.getElementById('paciente-temaqui').checked = p.temAqui || false;
   document.getElementById('paciente-obs').value = p.obs || '';
   
+  const container = document.getElementById('container-doses-dinamicas');
+  container.innerHTML = '';
+  if(p.doses && p.doses.length > 0){
+    p.doses.forEach(d => adicionarCampoDose(d.data));
+  }
+
   document.getElementById('paciente-form-title').textContent = 'Editar Paciente';
   document.getElementById('paciente-submit-btn').textContent = 'Salvar Alterações';
   document.getElementById('paciente-cancel-wrap').style.display = 'block';
@@ -649,7 +733,6 @@ document.getElementById('form-procedimento').addEventListener('submit', (e)=>{
     id: id || uid(),
     nome: document.getElementById('proc-nome').value,
     produtoId: document.getElementById('proc-produto').value,
-    periodo: parseInt(document.getElementById('proc-periodo').value) || 1,
     cicloCobranca: parseInt(document.getElementById('proc-ciclo').value) || 6,
     valor: parseFloat(document.getElementById('proc-valor').value) || 0
   };
@@ -666,7 +749,6 @@ window.editProcedimento = function(id){
   document.getElementById('proc-id').value = p.id;
   document.getElementById('proc-nome').value = p.nome;
   document.getElementById('proc-produto').value = p.produtoId || '';
-  document.getElementById('proc-periodo').value = p.periodo;
   document.getElementById('proc-ciclo').value = p.cicloCobranca || 6;
   document.getElementById('proc-valor').value = p.valor || 0;
   document.getElementById('proc-form-title').textContent = 'Editar Procedimento';
