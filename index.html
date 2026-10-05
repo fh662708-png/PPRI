@@ -61,7 +61,6 @@
     .chart-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));min-width:6px}
     .chart-value{text-align:center;font-weight:700;color:var(--accent)}
     @media(max-width:650px){.chart-row{grid-template-columns:1fr}.chart-value{text-align:left}}
-    /* mini-abas dentro de cada opção */
     .mini-tabs{display:flex;gap:6px;margin:6px 0 10px}
     .mini-btn{padding:6px 12px;font-size:12px;background:#1f2937;color:var(--muted);border:1px solid var(--border)}
     .mini-btn.active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
@@ -93,7 +92,7 @@
             <h2>Enviar sugestões</h2>
             <p class="small">Informe seus dados e apresente até sete opções de local/ação operacional.</p>
             <div class="grid">
-                <div><label>RE do patrulheiro</label><input id="re" placeholder="Digite o RE"></div>
+                <div><label>RE do patrulheiro (Opcional)</label><input id="re" placeholder="Digite o RE (Opcional)"></div>
                 <div><label>Pelotão</label>
                     <select id="pelotao">
                         <option value="">Selecione</option>
@@ -124,18 +123,27 @@
         </div>
 
         <div id="adminArea" class="hidden">
-            <div class="card">
+            <div class="card" style="margin-bottom:16px;">
                 <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
                     <div><h2 style="margin-bottom:4px">Respostas recebidas</h2><div class="small">Área exclusiva do administrador.</div></div>
                     <button class="danger" onclick="logoutAdmin()">Sair</button>
                 </div>
-                <div class="filters">
+                <div class="filters" style="margin-top:16px;">
                     <div><label>Filtrar por pelotão</label><select id="fPel" onchange="renderAdmin()"><option value="">Todos</option><option>1º Pelotão</option><option>2º Pelotão</option><option>3º Pelotão</option><option>4º Pelotão</option><option>5º Pelotão</option></select></div>
-                    <div><label>Filtrar por operação</label><select id="fOp" onchange="renderAdmin()"><option value="">Todas</option><option>Ultrapassagem</option><option>Alcoolemia</option><option>Moto Speed</option><option>Velocidade</option><option>Transporte de carga</option><option>Outra</option></select></div>
+                    <div><label>Filtrar por operação</label><select id="fOp" onchange="renderAdmin()"><option value="">Todas</option></select></div>
                     <div><label>Buscar rodovia / RE</label><input id="fBusca" oninput="renderAdmin()" placeholder="SP-425 ou RE"></div>
                     <div style="display:flex;align-items:end"><button class="secondary" style="width:100%" onclick="exportarCSV()">Exportar CSV</button></div>
                 </div>
                 <div id="adminTabela"></div>
+            </div>
+
+            <!-- CONFIGURAÇÃO DE OPERAÇÕES -->
+            <div class="card">
+                <h3>Configuração de Operações</h3>
+                <p class="small" style="margin-bottom:10px;">Edite as opções de operações disponíveis para os patrulheiros (separe por vírgula):</p>
+                <textarea id="adminOpsInput" rows="3" placeholder="Ex: Velocidade, Alcoolemia, Outra"></textarea>
+                <div class="row-actions"><button class="primary" onclick="salvarConfigOps()">Salvar Opções</button></div>
+                <div id="msgConfig" class="msg"></div>
             </div>
         </div>
     </section>
@@ -155,7 +163,7 @@
 </div>
 
 <div class="footer">
-    Sistema demonstrativo — 1ª Cia. Para uso real em rede, configure o Firebase e as regras de segurança do banco.
+    Sistema desenvolvido para — 1ª Cia / 3º BPRv
 </div>
 
 <!-- Firebase (SDK compat) -->
@@ -174,13 +182,16 @@ const firebaseConfig = {
     messagingSenderId: "485529031457",
     appId: "1:485529031457:web:7d73a617e2c6b958aee460"
 };
-const DB_PATH = "sugestoes_1cia";   // nó no Realtime Database
+const DB_PATH = "sugestoes_1cia";
+const DB_PATH_CONFIG = "sugestoes_1cia_config"; 
 
 const ADMIN_PASSWORD = "3BPRv";
 const STORAGE_KEY = "sugestoes_3bprv";
-const OPERACOES = ["Ultrapassagem","Alcoolemia","Moto Speed","Velocidade","Transporte de carga","Outra"];
 const SENTIDOS = ["Leste","Oeste","Norte","Sul","Ambos"];
 const DIAS = ["Todos os dias","Dias úteis","Fins de semana","Feriados"];
+
+// Lista padrão inicial - pode ser sobrescrita pelo banco de dados
+let LISTA_OPERACOES = ["Ultrapassagem", "Alcoolemia", "Moto Speed", "Velocidade", "Transporte de Carga/C.Arqueada", "Saneamento", "Produtos Perigoso", "Criminal", "Outra"];
 
 let db = null;
 let DADOS = [];
@@ -194,35 +205,56 @@ function iniciarDados(){
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
             st.textContent = "Firebase conectado"; st.classList.add("on");
+            
+            // Ouvinte das sugestões
             db.ref(DB_PATH).on("value", snap=>{
                 const v = snap.val() || {};
                 DADOS = Object.entries(v).map(([k,r])=>({...r, id:k}));
                 renderAdmin(); renderRelatorios();
             }, err=>console.error("Erro Firebase:", err));
+            
+            // Ouvinte das configurações de operações (ADM)
+            db.ref(DB_PATH_CONFIG + "/operacoes").on("value", snap=>{
+                const v = snap.val();
+                if(v) {
+                    LISTA_OPERACOES = v;
+                    atualizarDropdownsOperacoes();
+                }
+            });
+            
             return;
         }catch(e){ console.error(e); db = null; }
     }
     st.textContent = "Modo local (navegador)";
     carregarLocal();
 }
+
 function carregarLocal(){
     try{ DADOS = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }catch(e){ DADOS = []; }
+    try{ 
+        const ops = JSON.parse(localStorage.getItem(STORAGE_KEY + "_ops")); 
+        if(ops) LISTA_OPERACOES = ops;
+    }catch(e){}
+    atualizarDropdownsOperacoes();
 }
+
 async function gravarRegistro(reg){
     if(db){ await db.ref(DB_PATH).push(reg); return; }
     reg.id = String(Date.now());
     DADOS.push(reg);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS));
 }
+
 async function removerRegistro(id){
     if(db){ await db.ref(DB_PATH + "/" + id).remove(); return; }
     DADOS = DADOS.filter(x=>String(x.id)!==String(id));
     localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS));
 }
+
 function getDados(){ return DADOS; }
 
 /* ---------- formulário: 7 opções com mini-abas ---------- */
-function opts(arr){ return arr.map(x=>`<option>${x}</option>`).join(""); }
+function opts(arr){ return arr.map(x=>`<option value="${x}">${x}</option>`).join(""); }
 
 function montarOpcoes(){
     let html = "";
@@ -241,7 +273,7 @@ function montarOpcoes(){
                     <div><label>Km / trecho</label><input id="km${i}" placeholder="${i===1?'Ex.: km 82 ao 90':''}"></div>
                 </div>
                 <div class="grid" style="margin-top:14px">
-                    <div><label>Operação</label><select id="op${i}">${opts(OPERACOES)}</select></div>
+                    <div><label>Operação</label><select id="op${i}"></select></div>
                     <div><label>Justificativa</label><input id="just${i}" placeholder="${i===1?'Ex.: alto índice de acidentes no trecho':''}"></div>
                 </div>
             </div>
@@ -255,12 +287,62 @@ function montarOpcoes(){
         </div>`;
     }
     document.getElementById("opcoesBox").innerHTML = html;
+    atualizarDropdownsOperacoes();
 }
+
 function miniTab(i, which){
     ["loc","hor"].forEach(w=>{
         document.getElementById(`mp-${w}-${i}`).classList.toggle("active", w===which);
         document.getElementById(`mb-${w}-${i}`).classList.toggle("active", w===which);
     });
+}
+
+function atualizarDropdownsOperacoes(){
+    // Atualiza os formulários dos patrulheiros
+    for(let i=1;i<=7;i++){
+        const sel = document.getElementById("op"+i);
+        if(sel){
+            const valorAtual = sel.value;
+            sel.innerHTML = opts(LISTA_OPERACOES);
+            if(LISTA_OPERACOES.includes(valorAtual)) sel.value = valorAtual;
+        }
+    }
+    // Atualiza filtro do ADM
+    const fOp = document.getElementById("fOp");
+    if(fOp){
+        const valorAtual = fOp.value;
+        fOp.innerHTML = `<option value="">Todas</option>` + opts(LISTA_OPERACOES);
+        if(LISTA_OPERACOES.includes(valorAtual)) fOp.value = valorAtual;
+    }
+    // Atualiza campo de configuração do ADM
+    const adminInput = document.getElementById("adminOpsInput");
+    if(adminInput){
+        adminInput.value = LISTA_OPERACOES.join(", ");
+    }
+}
+
+async function salvarConfigOps(){
+    const input = document.getElementById("adminOpsInput").value;
+    const arrayOps = input.split(",").map(i => i.trim()).filter(i => i !== "");
+    const msg = document.getElementById("msgConfig");
+    
+    if(arrayOps.length === 0){
+        msg.className = "msg err"; msg.textContent = "A lista não pode estar vazia."; return;
+    }
+
+    try {
+        if(db){
+            await db.ref(DB_PATH_CONFIG + "/operacoes").set(arrayOps);
+        } else {
+            LISTA_OPERACOES = arrayOps;
+            localStorage.setItem(STORAGE_KEY + "_ops", JSON.stringify(arrayOps));
+            atualizarDropdownsOperacoes();
+        }
+        msg.className = "msg ok"; msg.textContent = "Opções atualizadas com sucesso!";
+        setTimeout(() => msg.className="msg", 4000);
+    } catch(e) {
+        msg.className = "msg err"; msg.textContent = "Erro ao salvar.";
+    }
 }
 
 /* ---------- navegação ---------- */
@@ -281,12 +363,12 @@ function horarioTxt(o){
 }
 
 async function salvarSugestao(){
-    const re = document.getElementById("re").value.trim();
+    const re = document.getElementById("re").value.trim(); // Agora opcional
     const pelotao = document.getElementById("pelotao").value;
     const msg = document.getElementById("msgPatrulheiro");
 
-    if(!re || !pelotao){
-        msg.className="msg err"; msg.textContent="Informe o RE e o pelotão."; return;
+    if(!pelotao){
+        msg.className="msg err"; msg.textContent="Informe o pelotão."; return;
     }
 
     const opcoes = [1,2,3,4,5,6,7].map(i=>({
@@ -310,7 +392,8 @@ async function salvarSugestao(){
         await gravarRegistro({
             data:new Date().toLocaleString("pt-BR"),
             timestamp:Date.now(),
-            re, pelotao, opcoes
+            re: re || "(Não informado)", // Salva placeholder se vazio
+            pelotao, opcoes
         });
         msg.className="msg ok";
         msg.textContent="Sugestões enviadas com sucesso.";
@@ -409,7 +492,7 @@ async function excluir(id){
     if(!confirm("Excluir este registro?")) return;
     try{
         await removerRegistro(id);
-        if(!db){ renderAdmin(); renderRelatorios(); }   // no Firebase o listener atualiza sozinho
+        if(!db){ renderAdmin(); renderRelatorios(); }   
     }catch(e){ console.error(e); alert("Erro ao excluir."); }
 }
 
@@ -424,12 +507,13 @@ function renderRelatorios(){
     const pelotoes=["1º Pelotão","2º Pelotão","3º Pelotão","4º Pelotão","5º Pelotão"];
 
     const totalSugestoes=dados.reduce((s,r)=>s+r.opcoes.length,0);
-    const uniqueRE=new Set(dados.map(r=>r.re)).size;
+    // Ignora REs não informados na contagem única
+    const uniqueRE=new Set(dados.filter(r=>r.re && r.re!=="(Não informado)").map(r=>r.re)).size;
 
     document.getElementById("cardsStats").innerHTML=`
         <div class="stat"><span>Respostas</span><strong>${dados.length}</strong></div>
         <div class="stat"><span>Sugestões</span><strong>${totalSugestoes}</strong></div>
-        <div class="stat"><span>Patrulheiros participantes</span><strong>${uniqueRE}</strong></div>`;
+        <div class="stat"><span>Patrulheiros (c/ RE)</span><strong>${uniqueRE}</strong></div>`;
 
     const contPel={};
     pelotoes.forEach(p=>contPel[p]=0);
