@@ -3,808 +3,499 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>SETA · Gestão da Clínica</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Sugestões Operacionais - 1ª Cia</title>
 <style>
-  :root{
-    --ink:#0F3D3E; --ink-soft:#1B6B6F; --paper:#F7F5F0; --paper-alt:#EFEBE2;
-    --coral:#E8672A; --coral-soft:#FBDCCB; --green:#3D8361; --green-soft:#DCEEE2;
-    --yellow:#C68A1E; --yellow-soft:#F6E7C6; --red:#C1443A; --red-soft:#F6DAD6;
-    --line:#DDD6C6; --white:#FFFCF7; --shadow: 0 8px 24px rgba(15,61,62,0.08);
-    --marina:#7B5EA7; --marina-soft:#EBE4F5; --nath:#2563EB; --nath-soft:#DBEAFE;
-  }
-  *{box-sizing:border-box;} html,body{margin:0;padding:0;}
-  body{ background:var(--paper); color:var(--ink); font-family:'Space Grotesk', sans-serif; -webkit-font-smoothing:antialiased; }
-  h1,h2,h3{ font-family:'Fraunces', serif; margin:0 0 4px 0; font-weight:600; }
-  .app-shell{max-width:1080px;margin:0 auto;padding:0 20px 80px;}
-
-  header.top{ display:flex;align-items:center;justify-content:space-between; padding:26px 0 18px; border-bottom:2px solid var(--ink); margin-bottom:24px; flex-wrap:wrap; gap:14px; }
-  .brand{display:flex;align-items:center;gap:12px;}
-  .brand-text h1{font-size:28px;letter-spacing:0.5px;color:var(--ink);}
-  .brand-text p{margin:0;font-size:12.5px;color:var(--ink-soft);letter-spacing:1.5px;text-transform:uppercase;}
-
-  nav.tabs{display:flex;gap:6px;background:var(--paper-alt);padding:5px;border-radius:12px;overflow-x:auto;}
-  nav.tabs button{ border:none;background:transparent;padding:10px 16px;border-radius:9px; font-family:'Space Grotesk';font-size:14px;font-weight:600;color:var(--ink-soft); cursor:pointer; transition:all .15s ease; }
-  nav.tabs button.active{background:var(--ink);color:var(--white);}
-  nav.tabs button:hover:not(.active){background:#e4ddc9;}
-
-  section.view{display:none;} section.view.active{display:block; animation:fade .25s ease;}
-  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:none;}}
-
-  .card{ background:var(--white); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:var(--shadow); margin-bottom:22px; }
-  .card h2{font-size:20px;} .subtle{color:var(--ink-soft);font-size:13.5px;margin:0 0 18px 0;}
-
-  .grid-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px;}
-  .stat{ background:var(--white);border:1px solid var(--line);border-radius:14px;padding:18px 20px; box-shadow:var(--shadow); border-left:5px solid var(--ink); }
-  .stat .num{font-family:'Fraunces';font-size:32px;font-weight:700;line-height:1;}
-  .stat .label{font-size:12.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:1px;margin-top:6px;}
-  .stat.urgente{border-left-color:var(--red);} .stat.atencao{border-left-color:var(--yellow);} .stat.estoque{border-left-color:var(--coral);}
-
-  form.grid-form{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;align-items:end;}
-  .field{display:flex;flex-direction:column;gap:6px;}
-  .field label{font-size:12.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;letter-spacing:0.5px;}
-  .field input, .field select, .field textarea{ font-family:'Space Grotesk';font-size:14.5px;padding:10px 12px; border:1.5px solid var(--line);border-radius:9px;background:var(--paper);color:var(--ink); }
-  .field input[type="checkbox"]{width:20px;height:20px;accent-color:var(--ink);}
-  .checkbox-wrap{display:flex;align-items:center;gap:8px;background:var(--green-soft);padding:12px;border-radius:9px;border:1px solid var(--green);}
-  .checkbox-wrap label{margin:0;color:var(--green);font-size:13.5px;font-weight:600;}
-  .field.span2{grid-column:span 2;}
-
-  .btn{ font-family:'Space Grotesk';font-weight:700;font-size:14px; padding:11px 20px;border-radius:9px;border:none;cursor:pointer; background:var(--ink);color:var(--white); transition:transform .12s ease; }
-  .btn:hover{background:var(--ink-soft);} .btn:active{transform:scale(0.97);}
-  .btn.coral{background:var(--coral);} .btn.coral:hover{background:#d4551b;}
-  .btn.ghost{background:transparent;color:var(--ink-soft);border:1.5px solid var(--line);}
-  .btn.ghost:hover{background:var(--paper-alt);}
-  .btn.small{padding:6px 12px;font-size:12.5px;}
-  .btn.danger-ghost{background:transparent;color:var(--red);border:1.5px solid var(--red-soft);}
-  .btn.zap{background:#25D366;color:#fff;} .btn.zap:hover{background:#1EBE5A;}
-  .btn.zap:disabled{background:var(--line);cursor:not-allowed;}
-
-  .list{display:flex;flex-direction:column;gap:12px;margin-top:20px;}
-  .row-card{ border:1px solid var(--line); border-radius:12px; padding:16px 18px; background:var(--white); display:flex; justify-content:space-between; align-items:center; gap:16px; border-left:6px solid var(--ink); flex-wrap:wrap; }
-  .row-card.ok{border-left-color:var(--green);} .row-card.atencao{border-left-color:var(--yellow);} .row-card.urgente{border-left-color:var(--coral);} .row-card.critico{border-left-color:var(--red); background:linear-gradient(90deg, var(--red-soft), var(--white) 40%);}
-
-  .row-main{display:flex;flex-direction:column;gap:4px;min-width:220px;flex:1;}
-  .row-main strong{font-size:15.5px;}
-  .row-meta{font-size:12.5px;color:var(--ink-soft);}
-  .row-actions{display:flex;gap:8px;flex-shrink:0;align-items:center;flex-wrap:wrap;}
-
-  .badge{ display:inline-flex;align-items:center;gap:6px; font-size:11.5px;font-weight:700;text-transform:uppercase; padding:5px 10px;border-radius:999px; }
-  .badge.ok{background:var(--green-soft);color:var(--green);} .badge.atencao{background:var(--yellow-soft);color:var(--yellow);}
-  .badge.urgente{background:var(--coral-soft);color:var(--coral);} .badge.critico{background:var(--red);color:var(--white);}
-  .badge.marina{background:var(--marina-soft);color:var(--marina);} .badge.nath{background:var(--nath-soft);color:var(--nath);}
-
-  .doses-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
-  .dose-chip{ font-family:'Space Grotesk'; font-size:11.5px; padding:5px 10px; border-radius:999px; display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); }
-  .dose-chip.aplicada{background:var(--green-soft);color:var(--green);border-color:transparent;font-weight:600;}
-  .dose-chip.pendente{ background:var(--white); color:var(--ink-soft); border:1.5px dashed var(--line); font-weight:700; cursor:pointer; }
-  .dose-chip.pendente:hover{background:var(--coral-soft);color:var(--coral);border-color:var(--coral);}
-  
-  .filter-bar{display:flex;gap:10px;margin-bottom:20px;background:var(--white);padding:12px;border-radius:12px;border:1px solid var(--line);align-items:center;}
-  .filter-bar label{font-size:12.5px;font-weight:600;color:var(--ink-soft);text-transform:uppercase;}
-  .filter-bar select{font-family:'Space Grotesk';font-size:14px;padding:8px 12px;border-radius:8px;border:1px solid var(--line);flex:1;}
-
-  #login-screen{ position:fixed; inset:0; background:var(--ink); display:flex; align-items:center; justify-content:center; z-index:999; padding:20px; }
-  .login-card{ background:var(--white); border-radius:16px; padding:36px 32px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.35); text-align:center; }
-  .login-card input{width:100%;}
-  .login-error{color:var(--red);font-size:13px;margin:10px 0 0 0;display:none;font-weight:600;}
-  #app-shell-wrap{display:none;}
+    :root{
+        --bg:#0f172a;--panel:#111827;--panel2:#1f2937;--accent:#f59e0b;--accent2:#2563eb;
+        --text:#f8fafc;--muted:#cbd5e1;--danger:#dc2626;--success:#16a34a;--border:#334155;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Arial,Helvetica,sans-serif;background:linear-gradient(135deg,#0f172a,#1e293b);color:var(--text);min-height:100vh}
+    header{background:#020617;border-bottom:3px solid var(--accent);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap}
+    header h1{margin:0;font-size:22px}
+    header small{color:var(--muted)}
+    .container{max-width:1200px;margin:22px auto;padding:0 16px}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+    .tab-btn{border:1px solid var(--border);background:var(--panel);color:var(--text);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:700}
+    .tab-btn.active{background:var(--accent);color:#111827;border-color:var(--accent)}
+    .tab{display:none}
+    .tab.active{display:block}
+    .card{background:rgba(17,24,39,.97);border:1px solid var(--border);border-radius:12px;padding:18px;margin-bottom:16px;box-shadow:0 10px 30px rgba(0,0,0,.22)}
+    h2,h3{margin-top:0}
+    .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+    .grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+    @media(max-width:850px){.grid,.grid3{grid-template-columns:1fr}}
+    label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px;font-weight:700}
+    input,select,textarea{width:100%;padding:11px;border-radius:8px;border:1px solid var(--border);background:#0b1220;color:var(--text);outline:none}
+    textarea{min-height:70px;resize:vertical;font-family:inherit}
+    input:focus,select:focus,textarea:focus{border-color:var(--accent)}
+    button{border:0;padding:10px 15px;border-radius:8px;font-weight:700;cursor:pointer}
+    .primary{background:var(--accent);color:#111827}
+    .secondary{background:var(--accent2);color:white}
+    .danger{background:var(--danger);color:white}
+    .ghost{background:#334155;color:white}
+    .msg{margin-top:12px;padding:10px;border-radius:8px;display:none}
+    .msg.ok{display:block;background:#052e16;border:1px solid #166534}
+    .msg.err{display:block;background:#450a0a;border:1px solid #991b1b}
+    table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px}
+    th,td{border:1px solid var(--border);padding:9px;text-align:left;vertical-align:top}
+    th{background:#0b1220}
+    tr:nth-child(even) td{background:#0f172a}
+    .badge{display:inline-block;padding:4px 8px;border-radius:999px;background:#1e3a8a;color:white;font-size:12px;margin:2px}
+    .badge.hor{background:#78350f}
+    .stat{background:#0b1220;border:1px solid var(--border);border-radius:10px;padding:16px}
+    .stat strong{display:block;font-size:28px;color:var(--accent)}
+    .hidden{display:none!important}
+    .small{font-size:12px;color:var(--muted)}
+    .row-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+    .opcao{border-left:4px solid var(--accent2);padding-left:12px;margin-top:12px}
+    .login-box{max-width:420px;margin:0 auto}
+    .filters{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+    @media(max-width:900px){.filters{grid-template-columns:1fr 1fr}}
+    @media(max-width:550px){.filters{grid-template-columns:1fr}}
+    .footer{text-align:center;color:#94a3b8;padding:30px 10px;font-size:12px}
+    .chart-list{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+    .chart-row{display:grid;grid-template-columns:minmax(160px,260px) 1fr 48px;gap:10px;align-items:center}
+    .chart-label{font-size:13px;font-weight:700;word-break:break-word}
+    .chart-track{height:24px;background:#0b1220;border:1px solid var(--border);border-radius:6px;overflow:hidden}
+    .chart-bar{height:100%;background:linear-gradient(90deg,var(--accent2),var(--accent));min-width:6px}
+    .chart-value{text-align:center;font-weight:700;color:var(--accent)}
+    @media(max-width:650px){.chart-row{grid-template-columns:1fr}.chart-value{text-align:left}}
+    /* mini-abas dentro de cada opção */
+    .mini-tabs{display:flex;gap:6px;margin:6px 0 10px}
+    .mini-btn{padding:6px 12px;font-size:12px;background:#1f2937;color:var(--muted);border:1px solid var(--border)}
+    .mini-btn.active{background:var(--accent2);color:#fff;border-color:var(--accent2)}
+    .mini-pane{display:none}
+    .mini-pane.active{display:block}
+    .status-db{font-size:11px;padding:3px 8px;border-radius:999px;background:#334155}
+    .status-db.on{background:#166534}
 </style>
 </head>
 <body>
+<header>
+    <div>
+        <h1>1ª Cia — Sugestões de Ações CPP Rodoviárias</h1>
+        <small>Registro de sugestões operacionais por patrulheiro</small>
+    </div>
+    <div class="small"><span id="statusDb" class="status-db">Modo local</span></div>
+</header>
 
-<div id="login-screen">
-  <div class="login-card">
-    <h1>SETA</h1>
-    <p>Acesso restrito</p>
-    <form id="form-login">
-      <div class="field" style="text-align:left;">
-        <label>Senha</label>
-        <input type="password" id="login-senha" required placeholder="Digite sua senha">
-      </div>
-      <div class="login-error" id="login-error">Senha incorreta. Tente novamente.</div>
-      <button type="submit" class="btn coral" style="width:100%; margin-top:15px;">Entrar</button>
-    </form>
-  </div>
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="showTab('patrulheiro', this)">Patrulheiro</button>
+        <button class="tab-btn" onclick="showTab('admin', this)">Administrador</button>
+        <button class="tab-btn admin-only hidden" onclick="showTab('relatorios', this)">Relatórios</button>
+    </div>
+
+    <!-- PATRULHEIRO -->
+    <section id="patrulheiro" class="tab active">
+        <div class="card">
+            <h2>Enviar sugestões</h2>
+            <p class="small">Informe seus dados e apresente até sete opções de local/ação operacional.</p>
+            <div class="grid">
+                <div><label>RE do patrulheiro</label><input id="re" placeholder="Digite o RE"></div>
+                <div><label>Pelotão</label>
+                    <select id="pelotao">
+                        <option value="">Selecione</option>
+                        <option>1º Pelotão</option><option>2º Pelotão</option><option>3º Pelotão</option>
+                        <option>4º Pelotão</option><option>5º Pelotão</option>
+                    </select>
+                </div>
+            </div>
+
+            <div id="opcoesBox"></div>
+
+            <div class="row-actions">
+                <button class="primary" id="btnEnviar" onclick="salvarSugestao()">Enviar sugestões</button>
+                <button class="ghost" onclick="limparFormulario()">Limpar</button>
+            </div>
+            <div id="msgPatrulheiro" class="msg"></div>
+        </div>
+    </section>
+
+    <!-- ADMIN -->
+    <section id="admin" class="tab">
+        <div id="loginArea" class="card login-box">
+            <h2>Acesso do administrador</h2>
+            <label>Senha</label>
+            <input type="password" id="senhaAdmin" placeholder="Digite a senha">
+            <div class="row-actions"><button class="primary" onclick="loginAdmin()">Entrar</button></div>
+            <div id="msgLogin" class="msg"></div>
+        </div>
+
+        <div id="adminArea" class="hidden">
+            <div class="card">
+                <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+                    <div><h2 style="margin-bottom:4px">Respostas recebidas</h2><div class="small">Área exclusiva do administrador.</div></div>
+                    <button class="danger" onclick="logoutAdmin()">Sair</button>
+                </div>
+                <div class="filters">
+                    <div><label>Filtrar por pelotão</label><select id="fPel" onchange="renderAdmin()"><option value="">Todos</option><option>1º Pelotão</option><option>2º Pelotão</option><option>3º Pelotão</option><option>4º Pelotão</option><option>5º Pelotão</option></select></div>
+                    <div><label>Filtrar por operação</label><select id="fOp" onchange="renderAdmin()"><option value="">Todas</option><option>Ultrapassagem</option><option>Alcoolemia</option><option>Moto Speed</option><option>Velocidade</option><option>Transporte de carga</option><option>Outra</option></select></div>
+                    <div><label>Buscar rodovia / RE</label><input id="fBusca" oninput="renderAdmin()" placeholder="SP-425 ou RE"></div>
+                    <div style="display:flex;align-items:end"><button class="secondary" style="width:100%" onclick="exportarCSV()">Exportar CSV</button></div>
+                </div>
+                <div id="adminTabela"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- RELATÓRIOS -->
+    <section id="relatorios" class="tab">
+        <div class="card"><h2>Relatório por Pelotão</h2><div class="grid3" id="cardsStats"></div></div>
+        <div class="card"><h3>Quantidade de sugestões por pelotão</h3><div id="relPel"></div></div>
+        <div class="card"><h3>Operações mais sugeridas</h3><div id="relOps"></div></div>
+        <div class="card"><h3>Rodovias mais indicadas</h3><div id="relRod"></div></div>
+        <div class="card">
+            <h3>Pontos coincidentes — mesma rodovia e km/trecho</h3>
+            <div class="small">Exibe somente locais indicados por 2 ou mais sugestões.</div>
+            <div id="graficoKm"></div>
+        </div>
+    </section>
 </div>
 
-<div id="app-shell-wrap">
-<div class="app-shell">
-
-  <header class="top">
-    <div class="brand">
-      <div class="brand-text">
-        <h1>SETA</h1>
-        <p>Painel Integrado da Clínica (ITAS / MSG / IMUNO)</p>
-      </div>
-    </div>
-    <nav class="tabs">
-      <button data-tab="painel" class="active">Painel & WhatsApp</button>
-      <button data-tab="pacientes">Pacientes (ITAS)</button>
-      <button data-tab="procedimentos">Procedimentos</button>
-      <button data-tab="estoque">Estoque</button>
-      <button data-tab="relatorios">Relatórios</button>
-      <button data-tab="usuarios" id="tab-usuarios-btn" style="display:none;">Usuários</button>
-    </nav>
-  </header>
-
-  <div class="filter-bar">
-    <label>Filtrar Profissional:</label>
-    <select id="global-prof-filter">
-      <option value="TODOS">Visão Geral (Todas as Profissionais)</option>
-    </select>
-  </div>
-
-  <section class="view active" id="view-painel">
-    <div class="grid-summary" id="summary-cards"></div>
-
-    <div class="card">
-      <h2>Avisos de Aplicação & Lembretes WhatsApp (MSG)</h2>
-      <p class="subtle">Pacientes com aplicações agendadas para os próximos 15 dias. Envie o lembrete e marque o envio.</p>
-      <div class="list" id="alerts-list"></div>
-    </div>
-
-    <div class="card">
-      <h2>Produtos com Estoque Baixo</h2>
-      <p class="subtle">Exclui da contagem crítica os pacientes que já possuem marcação "Tem Aqui".</p>
-      <div class="list" id="stock-alert-list"></div>
-    </div>
-  </section>
-
-  <section class="view" id="view-pacientes">
-    <div class="card">
-      <h2 id="paciente-form-title">Cadastrar Paciente / Contrato (ITAS & IMUNO)</h2>
-      <p class="subtle">Preencha os dados e adicione quantas datas de doses forem necessárias.</p>
-      <form class="grid-form" id="form-paciente">
-        <input type="hidden" id="paciente-id">
-        <div class="field span2">
-          <label>Nome do Paciente</label>
-          <input type="text" id="paciente-nome" required placeholder="Nome completo">
-        </div>
-        <div class="field">
-          <label>Profissional Responsável</label>
-          <select id="paciente-prof" required></select>
-        </div>
-        <div class="field">
-          <label>WhatsApp (DDD + Número)</label>
-          <input type="text" id="paciente-contato" placeholder="Ex: 17999999999">
-        </div>
-        <div class="field">
-          <label>Data que Fechou (Contrato)</label>
-          <input type="date" id="paciente-datafechou">
-        </div>
-        <div class="field">
-          <label>Início do Tratamento (Entrega)</label>
-          <input type="date" id="paciente-inicio" required>
-        </div>
-        <div class="field span2">
-          <label>Composto (Fórmula / Descrição do Imunoterápico)</label>
-          <input type="text" id="paciente-composto" placeholder="Ex: Composto padrão antialérgico">
-        </div>
-        <div class="field span2">
-          <label>Procedimento Vinculado</label>
-          <select id="paciente-procedimento" required></select>
-        </div>
-
-        <div class="field span2" style="background:var(--paper-alt); padding:14px; border-radius:10px; border:1px solid var(--line);">
-          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-            <label style="margin:0;">Datas das Próximas Doses</label>
-            <button type="button" class="btn small coral" onclick="adicionarCampoDose()">+ Adicionar Dose</button>
-          </div>
-          <div id="container-doses-dinamicas" style="display:flex; flex-direction:column; gap:8px;"></div>
-        </div>
-
-        <div class="field span2">
-          <div class="checkbox-wrap">
-            <input type="checkbox" id="paciente-temaqui">
-            <label for="paciente-temaqui">Dose deste paciente já está guardada na clínica ("TEM AQUI")</label>
-          </div>
-        </div>
-        <div class="field span2">
-          <label>Observações</label>
-          <textarea id="paciente-obs" rows="2" placeholder="Notas importantes..."></textarea>
-        </div>
-        <div class="field span2" style="align-self:end;">
-          <button type="submit" class="btn coral" id="paciente-submit-btn">Salvar Paciente</button>
-        </div>
-      </form>
-      <div id="paciente-cancel-wrap" style="display:none;margin-top:10px;">
-        <button class="btn ghost small" id="paciente-cancel-edit" type="button">Cancelar edição</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Pacientes Cadastrados (ITAS)</h2>
-      <div class="list" id="pacientes-list"></div>
-    </div>
-  </section>
-
-  <section class="view" id="view-procedimentos">
-    <div class="card">
-      <h2 id="proc-form-title">Cadastrar Procedimento / Pacote</h2>
-      <form class="grid-form" id="form-procedimento">
-        <input type="hidden" id="proc-id">
-        <div class="field span2">
-          <label>Nome do Procedimento</label>
-          <input type="text" id="proc-nome" required placeholder="Ex: Imuno Pacote">
-        </div>
-        <div class="field span2">
-          <label>Produto Vinculado no Estoque</label>
-          <select id="proc-produto"></select>
-        </div>
-        <div class="field">
-          <label>Ciclo de Cobrança</label>
-          <select id="proc-ciclo">
-            <option value="6">A cada 6 meses</option>
-            <option value="12">A cada 1 ano</option>
-          </select>
-        </div>
-        <div class="field">
-          <label>Valor do Ciclo (R$)</label>
-          <input type="number" id="proc-valor" min="0" step="0.01" value="0" required>
-        </div>
-        <div class="field" style="align-self:end;">
-          <button type="submit" class="btn coral" id="proc-submit-btn">Salvar Procedimento</button>
-        </div>
-      </form>
-      <div id="proc-cancel-wrap" style="display:none;margin-top:10px;">
-        <button class="btn ghost small" id="proc-cancel-edit" type="button">Cancelar edição</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Procedimentos Cadastrados</h2>
-      <div class="list" id="procedimentos-list"></div>
-    </div>
-  </section>
-
-  <section class="view" id="view-estoque">
-    <div class="card">
-      <h2 id="estoque-form-title">Cadastrar Produto no Estoque Geral</h2>
-      <form class="grid-form" id="form-estoque">
-        <input type="hidden" id="estoque-id">
-        <div class="field span2">
-          <label>Nome do Produto</label>
-          <input type="text" id="estoque-nome" required placeholder="Ex: Frasco Imunoterápico">
-        </div>
-        <div class="field">
-          <label>Quantidade Atual</label>
-          <input type="number" id="estoque-qtd" min="0" value="0" required>
-        </div>
-        <div class="field">
-          <label>Quantidade Mínima Alerta</label>
-          <input type="number" id="estoque-min" min="0" value="1" required>
-        </div>
-        <div class="field">
-          <label>Preço de Custo (R$)</label>
-          <input type="number" id="estoque-custo" min="0" step="0.01" value="0" required>
-        </div>
-        <div class="field" style="align-self:end;">
-          <button type="submit" class="btn coral" id="estoque-submit-btn">Salvar Produto</button>
-        </div>
-      </form>
-      <div id="estoque-cancel-wrap" style="display:none;margin-top:10px;">
-        <button class="btn ghost small" id="estoque-cancel-edit" type="button">Cancelar edição</button>
-      </div>
-    </div>
-    <div class="card">
-      <h2>Produtos em Estoque</h2>
-      <div class="list" id="estoque-list"></div>
-    </div>
-  </section>
-
-  <section class="view" id="view-relatorios">
-    <div class="card">
-      <h2>Relatório Mensal Integrado</h2>
-      <p class="subtle">Visão de atendimentos, doses aplicadas e movimentação de pacientes das planilhas.</p>
-      <div class="field" style="max-width:220px;">
-        <label>Mês de Referência</label>
-        <input type="month" id="relatorio-mes">
-      </div>
-    </div>
-    <div class="grid-summary" id="relatorio-cards"></div>
-  </section>
-
-  <section class="view" id="view-usuarios">
-    <div class="card">
-      <h2>Cadastrar Nova Profissional / Integrante</h2>
-      <p class="subtle">Adicione novos usuários para acessar o sistema com senha individual.</p>
-      <form class="grid-form" id="form-usuario">
-        <div class="field span2">
-          <label>Nome da Profissional</label>
-          <input type="text" id="usuario-nome" required placeholder="Ex: Dra. Marina">
-        </div>
-        <div class="field span2">
-          <label>Senha de Acesso</label>
-          <input type="text" id="usuario-senha" required placeholder="Senha individual">
-        </div>
-        <div class="field span2" style="align-self:end;">
-          <button type="submit" class="btn coral">Salvar Usuário</button>
-        </div>
-      </form>
-    </div>
-    <div class="card">
-      <h2>Usuários Cadastrados</h2>
-      <div class="list" id="usuarios-list"></div>
-    </div>
-  </section>
-
-  <footer class="foot" style="text-align:center;color:var(--ink-soft);font-size:12px;padding-top:30px;">SETA · Controle Clínico Integrado</footer>
-</div>
+<div class="footer">
+    Sistema demonstrativo — 1ª Cia. Para uso real em rede, configure o Firebase e as regras de segurança do banco.
 </div>
 
+<!-- Firebase (SDK compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
-const ADMIN_PASSWORD_MASTER = 'raquel1160';
+/* ============================================================
+   CONFIGURAÇÃO DO FIREBASE
+   ============================================================ */
+const firebaseConfig = {
+    apiKey: "AIzaSyCfKPLCoJos3Qgg4kKx28d-NDlQMpcFnMo",
+    authDomain: "ppri-57927.firebaseapp.com",
+    databaseURL: "https://ppri-57927-default-rtdb.firebaseio.com",
+    projectId: "ppri-57927",
+    storageBucket: "ppri-57927.firebasestorage.app",
+    messagingSenderId: "485529031457",
+    appId: "1:485529031457:web:7d73a617e2c6b958aee460"
+};
+const DB_PATH = "sugestoes_1cia";   // nó no Realtime Database
 
-const loginScreen = document.getElementById('login-screen');
-const appShellWrap = document.getElementById('app-shell-wrap');
-const formLogin = document.getElementById('form-login');
-const loginError = document.getElementById('login-error');
+const ADMIN_PASSWORD = "3BPRv";
+const STORAGE_KEY = "sugestoes_3bprv";
+const OPERACOES = ["Ultrapassagem","Alcoolemia","Moto Speed","Velocidade","Transporte de carga","Outra"];
+const SENTIDOS = ["Leste","Oeste","Norte","Sul","Ambos"];
+const DIAS = ["Todos os dias","Dias úteis","Fins de semana","Feriados"];
 
-const loadAll = (key) => { try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } };
-const saveAll = (key, data) => localStorage.setItem(key, JSON.stringify(data));
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,6);
+let db = null;
+let DADOS = [];
 
-let pacientes = loadAll('seta_pacientes');
-let procedimentos = loadAll('seta_procedimentos');
-let estoque = loadAll('seta_estoque');
-let usuarios = loadAll('seta_usuarios');
-
-// Inicializa com usuárias padrão se a lista estiver vazia
-if(usuarios.length === 0){
-  usuarios = [
-    { id: uid(), nome: 'Marina', senha: '' },
-    { id: uid(), nome: 'Nathallia', senha: '' }
-  ];
-  saveAll('seta_usuarios', usuarios);
-}
-
-function checkAuth(){
-  const auth = sessionStorage.getItem('seta_autenticado');
-  if(auth === 'sim'){
-    loginScreen.style.display='none';
-    appShellWrap.style.display='block';
-    
-    const isMaster = sessionStorage.getItem('seta_master') === 'sim';
-    const tabUsuarios = document.getElementById('tab-usuarios-btn');
-    if(tabUsuarios){
-      tabUsuarios.style.display = isMaster ? 'block' : 'none';
+/* ---------- camada de dados (Firebase ou localStorage) ---------- */
+function iniciarDados(){
+    const usaFirebase = !!firebaseConfig.databaseURL && typeof firebase !== "undefined";
+    const st = document.getElementById("statusDb");
+    if(usaFirebase){
+        try{
+            firebase.initializeApp(firebaseConfig);
+            db = firebase.database();
+            st.textContent = "Firebase conectado"; st.classList.add("on");
+            db.ref(DB_PATH).on("value", snap=>{
+                const v = snap.val() || {};
+                DADOS = Object.entries(v).map(([k,r])=>({...r, id:k}));
+                renderAdmin(); renderRelatorios();
+            }, err=>console.error("Erro Firebase:", err));
+            return;
+        }catch(e){ console.error(e); db = null; }
     }
-    renderAll();
-  }
+    st.textContent = "Modo local (navegador)";
+    carregarLocal();
 }
-checkAuth();
+function carregarLocal(){
+    try{ DADOS = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]"); }catch(e){ DADOS = []; }
+}
+async function gravarRegistro(reg){
+    if(db){ await db.ref(DB_PATH).push(reg); return; }
+    reg.id = String(Date.now());
+    DADOS.push(reg);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS));
+}
+async function removerRegistro(id){
+    if(db){ await db.ref(DB_PATH + "/" + id).remove(); return; }
+    DADOS = DADOS.filter(x=>String(x.id)!==String(id));
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(DADOS));
+}
+function getDados(){ return DADOS; }
 
-formLogin.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  const senha = document.getElementById('login-senha').value;
-  
-  if(senha === ADMIN_PASSWORD_MASTER){
-    sessionStorage.setItem('seta_autenticado','sim');
-    sessionStorage.setItem('seta_master','sim');
-    checkAuth();
-  } else {
-    const usuarioEncontrado = usuarios.find(u => u.senha && u.senha === senha);
-    if(usuarioEncontrado){
-      sessionStorage.setItem('seta_autenticado','sim');
-      sessionStorage.setItem('seta_master','nao');
-      checkAuth();
-    } else {
-      loginError.style.display='block';
-      document.getElementById('login-senha').value='';
-      document.getElementById('login-senha').focus();
+/* ---------- formulário: 7 opções com mini-abas ---------- */
+function opts(arr){ return arr.map(x=>`<option>${x}</option>`).join(""); }
+
+function montarOpcoes(){
+    let html = "";
+    for(let i=1;i<=7;i++){
+        html += `
+        <div class="opcao">
+            <h3>Opção ${i}</h3>
+            <div class="mini-tabs">
+                <button type="button" class="mini-btn active" id="mb-loc-${i}" onclick="miniTab(${i},'loc')">📍 Local / Ação</button>
+                <button type="button" class="mini-btn" id="mb-hor-${i}" onclick="miniTab(${i},'hor')">🕒 Horário</button>
+            </div>
+            <div class="mini-pane active" id="mp-loc-${i}">
+                <div class="grid3">
+                    <div><label>Rodovia</label><input id="rod${i}" placeholder="${i===1?'Ex.: SP-425':i===2?'Ex.: SP-322':'Ex.: SP-326'}"></div>
+                    <div><label>Sentido</label><select id="sent${i}">${opts(SENTIDOS)}</select></div>
+                    <div><label>Km / trecho</label><input id="km${i}" placeholder="${i===1?'Ex.: km 82 ao 90':''}"></div>
+                </div>
+                <div class="grid" style="margin-top:14px">
+                    <div><label>Operação</label><select id="op${i}">${opts(OPERACOES)}</select></div>
+                    <div><label>Justificativa</label><input id="just${i}" placeholder="${i===1?'Ex.: alto índice de acidentes no trecho':''}"></div>
+                </div>
+            </div>
+            <div class="mini-pane" id="mp-hor-${i}">
+                <div class="grid3">
+                    <div><label>Horário inicial</label><input type="time" id="hi${i}"></div>
+                    <div><label>Horário final</label><input type="time" id="hf${i}"></div>
+                    <div><label>Dias</label><select id="dias${i}">${opts(DIAS)}</select></div>
+                </div>
+            </div>
+        </div>`;
     }
-  }
-});
-
-function adicionarCampoDose(dataValor = '') {
-  const container = document.getElementById('container-doses-dinamicas');
-  const div = document.createElement('div');
-  div.style.cssText = 'display:flex; gap:8px; align-items:center;';
-  div.innerHTML = `
-    <input type="date" class="input-dose-dinamica" value="${dataValor}" style="flex:1; font-family:'Space Grotesk'; font-size:14.5px; padding:8px 12px; border:1.5px solid var(--line); border-radius:9px; background:var(--paper); color:var(--ink);" required>
-    <button type="button" class="btn danger-ghost small" onclick="this.parentElement.remove()" style="padding:8px 12px;">Remover</button>
-  `;
-  container.appendChild(div);
+    document.getElementById("opcoesBox").innerHTML = html;
 }
-
-function syncDosesFromInputs(paciente){
-  const inputs = document.querySelectorAll('.input-dose-dinamica');
-  const oldDoses = paciente.doses || [];
-  let newDoses = [];
-  
-  inputs.forEach((input, i) => {
-    if(!input.value) return;
-    let old = oldDoses[i];
-    newDoses.push({
-      indice: i,
-      data: input.value,
-      aplicada: old ? old.aplicada : false,
-      dataAplicacao: old ? old.dataAplicacao : null,
-      msgEnviada: old ? old.msgEnviada : false
+function miniTab(i, which){
+    ["loc","hor"].forEach(w=>{
+        document.getElementById(`mp-${w}-${i}`).classList.toggle("active", w===which);
+        document.getElementById(`mb-${w}-${i}`).classList.toggle("active", w===which);
     });
-  });
-  paciente.doses = newDoses;
-  paciente.qtdDoses = newDoses.length;
 }
 
-const fmt = (dStr) => { 
-  if(!dStr) return '—';
-  let partes = dStr.split('-');
-  return `${partes[2]}/${partes[1]}/${partes[0]}`;
-};
-
-const daysBetween = (dStr) => {
-  let partes = dStr.split('-');
-  let dDate = new Date(partes[0], partes[1] - 1, partes[2]).getTime();
-  let hoje = new Date();
-  hoje.setHours(0,0,0,0);
-  return Math.round((dDate - hoje.getTime())/86400000);
-};
-
-document.querySelectorAll('nav.tabs button').forEach(btn=>{
-  btn.addEventListener('click', ()=>{
-    document.querySelectorAll('nav.tabs button, section.view').forEach(x=>x.classList.remove('active'));
-    btn.classList.add('active'); document.getElementById('view-'+btn.dataset.tab).classList.add('active');
-  });
-});
-
-document.getElementById('global-prof-filter').addEventListener('change', renderAll);
-function getFilteredPacientes() {
-  const prof = document.getElementById('global-prof-filter').value;
-  return prof === 'TODOS' ? pacientes : pacientes.filter(p => p.profissional === prof);
+/* ---------- navegação ---------- */
+function showTab(id, btn){
+    if(id === "relatorios" && !sessionStorage.getItem("admin3bprv")) return;
+    document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
+    document.querySelectorAll(".tab-btn").forEach(b=>b.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+    if(btn) btn.classList.add("active");
+    if(id==="admin" && sessionStorage.getItem("admin3bprv")) mostrarAdmin();
+    if(id==="relatorios") renderRelatorios();
 }
 
-window.marcarDoseAplicada = function(pId, dIdx){
-  const p = pacientes.find(x=>x.id===pId);
-  if(!p) return;
-  p.doses[dIdx].aplicada = true;
-  p.doses[dIdx].dataAplicacao = new Date().toISOString().slice(0,10);
-  
-  if(!p.temAqui) { 
-    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
-    const prod = proc ? estoque.find(x=>x.id===proc.produtoId) : null;
-    if(prod){ prod.quantidade = Math.max(0, prod.quantidade - 1); saveAll('seta_estoque', estoque); }
-  }
-  saveAll('seta_pacientes', pacientes); renderAll();
-};
-
-window.undoDose = function(pId, dIdx){
-  const p = pacientes.find(x=>x.id===pId);
-  if(!p || !p.doses[dIdx].aplicada) return;
-  if(!confirm('Desfazer esta aplicação?')) return;
-  p.doses[dIdx].aplicada = false;
-  p.doses[dIdx].dataAplicacao = null;
-  
-  if(!p.temAqui) {
-    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
-    const prod = proc ? estoque.find(x=>x.id===proc.produtoId) : null;
-    if(prod){ prod.quantidade = Number(prod.quantidade) + 1; saveAll('seta_estoque', estoque); }
-  }
-  saveAll('seta_pacientes', pacientes); renderAll();
-};
-
-window.dispararZap = function(pId, dIdx){
-  const p = pacientes.find(x=>x.id===pId);
-  if(!p) return;
-  p.doses[dIdx].msgEnviada = true;
-  saveAll('seta_pacientes', pacientes);
-  const fone = p.contato ? p.contato.replace(/\D/g,'') : '';
-  if(fone) {
-    const text = encodeURIComponent(`Olá ${p.nome}, lembrete da sua ${dIdx+1}ª aplicação agendada para ${fmt(p.doses[dIdx].data)} na clínica SETA.`);
-    window.open(`https://wa.me/55${fone}?text=${text}`, '_blank');
-  } else {
-    alert('Paciente sem número de WhatsApp cadastrado, mas marcado como enviado.');
-  }
-  renderAll();
-};
-
-window.deleteObj = function(key, id) {
-  if(!confirm('Deseja realmente excluir este registro?')) return;
-  if(key==='seta_pacientes') pacientes = pacientes.filter(x=>x.id!==id);
-  if(key==='seta_procedimentos') procedimentos = procedimentos.filter(x=>x.id!==id);
-  if(key==='seta_estoque') estoque = estoque.filter(x=>x.id!==id);
-  if(key==='seta_usuarios') usuarios = usuarios.filter(x=>x.id!==id);
-  saveAll(key, key==='seta_pacientes'?pacientes:(key==='seta_procedimentos'?procedimentos:(key==='seta_estoque'?estoque:usuarios)));
-  renderAll();
-};
-
-function renderSelects() {
-  const selProf = document.getElementById('paciente-prof');
-  selProf.innerHTML = usuarios.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
-
-  const filterProf = document.getElementById('global-prof-filter');
-  const currentFilter = filterProf.value;
-  filterProf.innerHTML = '<option value="TODOS">Visão Geral (Todas as Profissionais)</option>' + usuarios.map(u => `<option value="${u.nome}">${u.nome}</option>`).join('');
-  filterProf.value = currentFilter;
-
-  const selProc = document.getElementById('paciente-procedimento');
-  selProc.innerHTML = procedimentos.length ? procedimentos.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('') : '<option value="">Cadastre um procedimento primeiro</option>';
-  
-  const selProd = document.getElementById('proc-produto');
-  selProd.innerHTML = '<option value="">Nenhum produto vinculado</option>' + estoque.map(p=>`<option value="${p.id}">${p.nome}</option>`).join('');
+/* ---------- salvar ---------- */
+function horarioTxt(o){
+    if(!o.horaInicio && !o.horaFim) return "";
+    return `${o.horaInicio||"--:--"} às ${o.horaFim||"--:--"}` + (o.dias ? ` (${o.dias})` : "");
 }
 
-function renderPacientes(){
-  const list = document.getElementById('pacientes-list');
-  const filtrados = getFilteredPacientes();
-  if(filtrados.length === 0){
-    list.innerHTML = `<div class="empty" style="text-align:center;padding:30px;color:var(--ink-soft);">Nenhum paciente cadastrado.</div>`;
-    return;
-  }
-  list.innerHTML = filtrados.map(p=>{
-    const proc = procedimentos.find(x=>x.id===p.procedimentoId);
-    const badgeProf = `<span class="badge marina">${p.profissional}</span>`;
-    const tagTemAqui = p.temAqui ? '<span class="badge ok">✓ Tem Aqui</span>' : '';
-    const aplicadas = (p.doses || []).filter(d=>d.aplicada).length;
-    
-    const dosesHtml = (p.doses || []).map((d, i)=>{
-      if(d.aplicada) return `<span class="dose-chip aplicada">Dose ${i+1}: ✓ ${fmt(d.dataAplicacao)} <button type="button" style="border:none;background:none;color:var(--green);cursor:pointer;font-weight:bold;" onclick="undoDose('${p.id}',${i})">×</button></span>`;
-      return `<button type="button" class="dose-chip pendente" onclick="marcarDoseAplicada('${p.id}',${i})">Dose ${i+1} (${fmt(d.data)}) - Aplicar</button>`;
-    }).join('');
+async function salvarSugestao(){
+    const re = document.getElementById("re").value.trim();
+    const pelotao = document.getElementById("pelotao").value;
+    const msg = document.getElementById("msgPatrulheiro");
 
-    return `
-    <div class="row-card ok">
-      <div class="row-main">
-        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
-          <strong>${p.nome}</strong> ${badgeProf} ${tagTemAqui}
-        </div>
-        <span class="row-meta">Composto: <strong>${p.composto || 'Não informado'}</strong> · Proc: ${proc?proc.nome:'—'}</span>
-        <span class="row-meta">Fechou em: ${fmt(p.dataFechou)} | Início: ${fmt(p.inicio)} | Progresso: ${aplicadas}/${(p.doses||[]).length} doses</span>
-        ${p.obs ? `<span class="row-meta">Obs: ${p.obs}</span>` : ''}
-        <div class="doses-wrap">${dosesHtml}</div>
-      </div>
-      <div class="row-actions">
-        <button type="button" class="btn ghost small" onclick="editPaciente('${p.id}')">Editar</button>
-        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_pacientes','${p.id}')">Excluir</button>
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function renderPainel(){
-  const filtrados = getFilteredPacientes();
-  let avisos = [];
-  
-  filtrados.forEach(p => {
-    if(!p.doses) return;
-    const pendenteIdx = p.doses.findIndex(d => !d.aplicada);
-    if(pendenteIdx !== -1){
-      const dose = p.doses[pendenteIdx];
-      const days = daysBetween(dose.data);
-      if(days <= 15) { avisos.push({ p, dose, doseIdx: pendenteIdx, days }); }
+    if(!re || !pelotao){
+        msg.className="msg err"; msg.textContent="Informe o RE e o pelotão."; return;
     }
-  });
 
-  avisos.sort((a,b) => a.days - b.days);
+    const opcoes = [1,2,3,4,5,6,7].map(i=>({
+        rodovia:document.getElementById("rod"+i).value.trim().toUpperCase(),
+        sentido:document.getElementById("sent"+i).value,
+        km:document.getElementById("km"+i).value.trim(),
+        operacao:document.getElementById("op"+i).value,
+        justificativa:document.getElementById("just"+i).value.trim(),
+        horaInicio:document.getElementById("hi"+i).value,
+        horaFim:document.getElementById("hf"+i).value,
+        dias:(document.getElementById("hi"+i).value || document.getElementById("hf"+i).value) ? document.getElementById("dias"+i).value : ""
+    })).filter(x=>x.rodovia || x.km || x.justificativa);
 
-  const list = document.getElementById('alerts-list');
-  list.innerHTML = avisos.map(a => {
-    const status = a.days < 0 ? 'urgente' : (a.days <= 7 ? 'atencao' : 'ok');
-    const badgeProf = `<span class="badge marina">${a.p.profissional}</span>`;
-    let btnZap = a.dose.msgEnviada 
-      ? `<button type="button" class="btn zap small" disabled>✓ Msg Enviada</button>`
-      : `<button type="button" class="btn zap small" onclick="dispararZap('${a.p.id}', ${a.doseIdx})">Enviar WhatsApp (MSG)</button>`;
+    if(opcoes.length < 1){
+        msg.className="msg err"; msg.textContent="Preencha ao menos uma sugestão."; return;
+    }
 
-    return `
-    <div class="row-card ${status}">
-      <div class="row-main">
-        <div><strong>${a.p.nome}</strong> ${badgeProf}</div>
-        <span class="row-meta">Dose ${a.doseIdx+1} (${a.p.composto||''}) marcada para ${fmt(a.dose.data)} (${a.days} dias)</span>
-      </div>
-      <div class="row-actions">
-        ${btnZap}
-        <button type="button" class="btn ghost small" onclick="marcarDoseAplicada('${a.p.id}', ${a.doseIdx})">Aplicar</button>
-      </div>
-    </div>`;
-  }).join('') || '<div style="color:var(--ink-soft);font-size:14px;padding:10px;">Nenhum aviso pendente para os próximos 15 dias.</div>';
-
-  const estoqueBaixoCount = estoque.filter(e => e.quantidade <= e.minimo).length;
-  document.getElementById('summary-cards').innerHTML = `
-    <div class="stat"><div class="num">${filtrados.length}</div><div class="label">Pacientes Ativos</div></div>
-    <div class="stat atencao"><div class="num">${avisos.length}</div><div class="label">Avisos Próximos</div></div>
-    <div class="stat estoque"><div class="num">${estoqueBaixoCount}</div><div class="label">Estoque Crítico</div></div>
-  `;
-
-  document.getElementById('stock-alert-list').innerHTML = estoque.filter(e => e.quantidade <= e.minimo).map(e => `
-    <div class="row-card critico">
-      <div class="row-main"><strong>${e.nome}</strong><span class="row-meta">Atual: ${e.quantidade} | Mínimo: ${e.minimo}</span></div>
-      <span class="badge critico">Repor</span>
-    </div>
-  `).join('') || '<div style="color:var(--ink-soft);font-size:14px;padding:10px;">Todo o estoque está adequado.</div>';
+    const btn = document.getElementById("btnEnviar");
+    btn.disabled = true;
+    try{
+        await gravarRegistro({
+            data:new Date().toLocaleString("pt-BR"),
+            timestamp:Date.now(),
+            re, pelotao, opcoes
+        });
+        msg.className="msg ok";
+        msg.textContent="Sugestões enviadas com sucesso.";
+        limparFormulario(false);
+    }catch(e){
+        console.error(e);
+        msg.className="msg err";
+        msg.textContent="Erro ao enviar. Verifique a conexão e tente novamente.";
+    }
+    btn.disabled = false;
 }
 
-function renderEstoque() {
-  document.getElementById('estoque-list').innerHTML = estoque.map(e=>`
-    <div class="row-card ${e.quantidade <= e.minimo ? 'critico' : 'ok'}">
-      <div class="row-main"><strong>${e.nome}</strong><span class="row-meta">Quantidade: ${e.quantidade} | Mínimo: ${e.minimo} | Custo: R$ ${e.custo||0}</span></div>
-      <div class="row-actions">
-        <button type="button" class="btn ghost small" onclick="editEstoque('${e.id}')">Editar</button>
-        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_estoque','${e.id}')">Excluir</button>
-      </div>
-    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum produto cadastrado.</div>';
-    
-  document.getElementById('procedimentos-list').innerHTML = procedimentos.map(p=>`
-    <div class="row-card ok">
-      <div class="row-main"><strong>${p.nome}</strong><span class="row-meta">Ciclo: ${p.cicloCobranca} meses · Valor Ciclo: R$ ${p.valor||0}</span></div>
-      <div class="row-actions">
-        <button type="button" class="btn ghost small" onclick="editProcedimento('${p.id}')">Editar</button>
-        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_procedimentos','${p.id}')">Excluir</button>
-      </div>
-    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum procedimento cadastrado.</div>';
-
-  document.getElementById('usuarios-list').innerHTML = usuarios.map(u=>`
-    <div class="row-card ok">
-      <div class="row-main"><strong>${u.nome}</strong><span class="row-meta">Senha: ${u.senha ? '••••••' : 'Sem senha'}</span></div>
-      <div class="row-actions">
-        <button type="button" class="btn danger-ghost small" onclick="deleteObj('seta_usuarios','${u.id}')">Excluir</button>
-      </div>
-    </div>`).join('') || '<div style="color:var(--ink-soft);">Nenhum usuário cadastrado.</div>';
+function limparFormulario(limparMsg=true){
+    document.getElementById("re").value="";
+    document.getElementById("pelotao").value="";
+    for(let i=1;i<=7;i++){
+        ["rod","km","just","hi","hf"].forEach(p=>document.getElementById(p+i).value="");
+        document.getElementById("sent"+i).selectedIndex=0;
+        document.getElementById("op"+i).selectedIndex=0;
+        document.getElementById("dias"+i).selectedIndex=0;
+        miniTab(i,"loc");
+    }
+    if(limparMsg) document.getElementById("msgPatrulheiro").className="msg";
 }
 
-function renderRelatorio(){
-  const inp = document.getElementById('relatorio-mes');
-  if(!inp.value){
-    let now = new Date();
-    inp.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0');
-  }
-  document.getElementById('relatorio-cards').innerHTML = `
-    <div class="stat"><div class="num">${pacientes.length}</div><div class="label">Total Geral Cadastrado</div></div>
-  `;
+/* ---------- admin ---------- */
+function loginAdmin(){
+    const senha=document.getElementById("senhaAdmin").value;
+    const msg=document.getElementById("msgLogin");
+    if(senha===ADMIN_PASSWORD){
+        sessionStorage.setItem("admin3bprv","1");
+        msg.className="msg";
+        mostrarAdmin();
+    }else{
+        msg.className="msg err";
+        msg.textContent="Senha inválida.";
+    }
+}
+function logoutAdmin(){
+    sessionStorage.removeItem("admin3bprv");
+    document.getElementById("adminArea").classList.add("hidden");
+    document.getElementById("loginArea").classList.remove("hidden");
+    document.querySelectorAll(".admin-only").forEach(x=>x.classList.add("hidden"));
+    document.getElementById("senhaAdmin").value="";
+}
+function mostrarAdmin(){
+    if(!sessionStorage.getItem("admin3bprv")) return;
+    document.getElementById("loginArea").classList.add("hidden");
+    document.getElementById("adminArea").classList.remove("hidden");
+    document.querySelectorAll(".admin-only").forEach(x=>x.classList.remove("hidden"));
+    renderAdmin();
 }
 
-function renderAll() { renderSelects(); renderPacientes(); renderEstoque(); renderPainel(); renderRelatorio(); }
+function renderAdmin(){
+    if(!sessionStorage.getItem("admin3bprv")) return;
+    const pel=document.getElementById("fPel")?.value || "";
+    const op=document.getElementById("fOp")?.value || "";
+    const busca=(document.getElementById("fBusca")?.value || "").toLowerCase();
+    let dados=getDados().slice().sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
 
-document.getElementById('form-usuario').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  let nome = document.getElementById('usuario-nome').value;
-  let senha = document.getElementById('usuario-senha').value;
-  usuarios.push({ id: uid(), nome, senha });
-  saveAll('seta_usuarios', usuarios);
-  e.target.reset();
-  renderAll();
-  alert('Usuário cadastrado com sucesso!');
-});
+    dados=dados.filter(r=>{
+        const pelOk=!pel || r.pelotao===pel;
+        const buscaOk=!busca || r.re.toLowerCase().includes(busca) || r.opcoes.some(o=>((o.rodovia||"")+" "+(o.km||"")+" "+(o.justificativa||"")).toLowerCase().includes(busca));
+        const opOk=!op || r.opcoes.some(o=>o.operacao===op);
+        return pelOk && buscaOk && opOk;
+    });
 
-document.getElementById('form-paciente').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  let id = document.getElementById('paciente-id').value;
-  let existente = id ? pacientes.find(x=>x.id===id) : null;
-  
-  let p = {
-    id: id || uid(),
-    nome: document.getElementById('paciente-nome').value,
-    profissional: document.getElementById('paciente-prof').value,
-    contato: document.getElementById('paciente-contato').value,
-    dataFechou: document.getElementById('paciente-datafechou').value,
-    inicio: document.getElementById('paciente-inicio').value,
-    composto: document.getElementById('paciente-composto').value,
-    procedimentoId: document.getElementById('paciente-procedimento').value,
-    temAqui: document.getElementById('paciente-temaqui').checked,
-    obs: document.getElementById('paciente-obs').value,
-    doses: existente ? existente.doses : []
-  };
-  
-  syncDosesFromInputs(p);
-  if(id){ pacientes = pacientes.map(x => x.id===id ? p : x); } else { pacientes.push(p); }
-  saveAll('seta_pacientes', pacientes);
-  resetPacienteForm(); renderAll(); alert('Paciente salvo com sucesso!');
-});
+    let html=`<div style="overflow-x:auto"><table><thead><tr>
+        <th>Data</th><th>RE</th><th>Pelotão</th><th>Opção 1</th><th>Opção 2</th><th>Opção 3</th><th>Opção 4</th><th>Opção 5</th><th>Opção 6</th><th>Opção 7</th><th>Ação</th>
+    </tr></thead><tbody>`;
 
-function resetPacienteForm(){
-  document.getElementById('form-paciente').reset();
-  document.getElementById('container-doses-dinamicas').innerHTML = '';
-  document.getElementById('paciente-id').value = '';
-  document.getElementById('paciente-form-title').textContent = 'Cadastrar Paciente / Contrato (ITAS & IMUNO)';
-  document.getElementById('paciente-submit-btn').textContent = 'Salvar Paciente';
-  document.getElementById('paciente-cancel-wrap').style.display = 'none';
+    if(!dados.length){
+        html+=`<tr><td colspan="11">Nenhum registro encontrado.</td></tr>`;
+    }else{
+        dados.forEach(r=>{
+            const cols=[0,1,2,3,4,5,6].map(i=>{
+                const o=r.opcoes[i];
+                if(!o) return "";
+                const h=horarioTxt(o);
+                return `<strong>${esc(o.rodovia)}</strong> ${esc(o.km)}<br>${esc(o.sentido)}<br><span class="badge">${esc(o.operacao)}</span>`
+                    + (h?`<br><span class="badge hor">🕒 ${esc(h)}</span>`:"")
+                    + `<br><span class="small">${esc(o.justificativa)}</span>`;
+            });
+            html+=`<tr>
+                <td>${esc(r.data)}</td><td>${esc(r.re)}</td><td>${esc(r.pelotao)}</td>
+                ${cols.map(c=>`<td>${c}</td>`).join("")}
+                <td><button class="danger" onclick="excluir('${esc(r.id)}')">Excluir</button></td>
+            </tr>`;
+        });
+    }
+    html+=`</tbody></table></div>`;
+    document.getElementById("adminTabela").innerHTML=html;
 }
-document.getElementById('paciente-cancel-edit').addEventListener('click', resetPacienteForm);
 
-window.editPaciente = function(id){
-  let p = pacientes.find(x=>x.id===id);
-  if(!p) return;
-  document.getElementById('paciente-id').value = p.id;
-  document.getElementById('paciente-nome').value = p.nome;
-  document.getElementById('paciente-prof').value = p.profissional;
-  document.getElementById('paciente-contato').value = p.contato || '';
-  document.getElementById('paciente-datafechou').value = p.dataFechou || '';
-  document.getElementById('paciente-inicio').value = p.inicio || '';
-  document.getElementById('paciente-composto').value = p.composto || '';
-  document.getElementById('paciente-procedimento').value = p.procedimentoId || '';
-  document.getElementById('paciente-temaqui').checked = p.temAqui || false;
-  document.getElementById('paciente-obs').value = p.obs || '';
-  
-  const container = document.getElementById('container-doses-dinamicas');
-  container.innerHTML = '';
-  if(p.doses && p.doses.length > 0){
-    p.doses.forEach(d => adicionarCampoDose(d.data));
-  }
+async function excluir(id){
+    if(!confirm("Excluir este registro?")) return;
+    try{
+        await removerRegistro(id);
+        if(!db){ renderAdmin(); renderRelatorios(); }   // no Firebase o listener atualiza sozinho
+    }catch(e){ console.error(e); alert("Erro ao excluir."); }
+}
 
-  document.getElementById('paciente-form-title').textContent = 'Editar Paciente';
-  document.getElementById('paciente-submit-btn').textContent = 'Salvar Alterações';
-  document.getElementById('paciente-cancel-wrap').style.display = 'block';
-  window.scrollTo({top:0, behavior:'smooth'});
-};
+function esc(v){
+    return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+}
 
-document.getElementById('form-procedimento').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  let id = document.getElementById('proc-id').value;
-  let data = {
-    id: id || uid(),
-    nome: document.getElementById('proc-nome').value,
-    produtoId: document.getElementById('proc-produto').value,
-    cicloCobranca: parseInt(document.getElementById('proc-ciclo').value) || 6,
-    valor: parseFloat(document.getElementById('proc-valor').value) || 0
-  };
-  if(id){ procedimentos = procedimentos.map(x=>x.id===id?data:x); } else { procedimentos.push(data); }
-  saveAll('seta_procedimentos', procedimentos);
-  e.target.reset(); document.getElementById('proc-id').value='';
-  document.getElementById('proc-cancel-wrap').style.display='none';
-  renderAll(); alert('Procedimento salvo!');
+/* ---------- relatórios ---------- */
+function renderRelatorios(){
+    if(!sessionStorage.getItem("admin3bprv")) return;
+    const dados=getDados();
+    const pelotoes=["1º Pelotão","2º Pelotão","3º Pelotão","4º Pelotão","5º Pelotão"];
+
+    const totalSugestoes=dados.reduce((s,r)=>s+r.opcoes.length,0);
+    const uniqueRE=new Set(dados.map(r=>r.re)).size;
+
+    document.getElementById("cardsStats").innerHTML=`
+        <div class="stat"><span>Respostas</span><strong>${dados.length}</strong></div>
+        <div class="stat"><span>Sugestões</span><strong>${totalSugestoes}</strong></div>
+        <div class="stat"><span>Patrulheiros participantes</span><strong>${uniqueRE}</strong></div>`;
+
+    const contPel={};
+    pelotoes.forEach(p=>contPel[p]=0);
+    dados.forEach(r=>contPel[r.pelotao]=(contPel[r.pelotao]||0)+r.opcoes.length);
+    document.getElementById("relPel").innerHTML=tabelaContagem(contPel,"Pelotão","Sugestões");
+
+    const ops={}, rods={}, pontos={};
+    dados.forEach(r=>r.opcoes.forEach(o=>{
+        ops[o.operacao]=(ops[o.operacao]||0)+1;
+        const rod=(o.rodovia||"").trim().toUpperCase();
+        const km=(o.km||"").trim().toUpperCase();
+        if(rod) rods[rod]=(rods[rod]||0)+1;
+        if(rod && km){ const k=rod+" • "+km; pontos[k]=(pontos[k]||0)+1; }
+    }));
+    document.getElementById("relOps").innerHTML=tabelaContagem(ops,"Operação","Quantidade",true);
+    document.getElementById("relRod").innerHTML=tabelaContagem(rods,"Rodovia","Quantidade",true);
+    renderGraficoKm(pontos);
+}
+
+function renderGraficoKm(obj){
+    const el=document.getElementById("graficoKm");
+    const arr=Object.entries(obj).filter(([k,v])=>v>=2).sort((a,b)=>b[1]-a[1]);
+    if(!arr.length){
+        el.innerHTML=`<div class="small" style="margin-top:12px">Ainda não há coincidência de rodovia + km/trecho entre as sugestões.</div>`;
+        return;
+    }
+    const max=Math.max(...arr.map(x=>x[1]));
+    el.innerHTML=`<div class="chart-list">`+arr.map(([nome,valor])=>{
+        const pct=Math.max(6,Math.round((valor/max)*100));
+        return `<div class="chart-row">
+            <div class="chart-label">${esc(nome)}</div>
+            <div class="chart-track"><div class="chart-bar" style="width:${pct}%"></div></div>
+            <div class="chart-value">${valor}x</div>
+        </div>`;
+    }).join("")+`</div>`;
+}
+
+function tabelaContagem(obj,c1,c2,ordenar=false){
+    let arr=Object.entries(obj);
+    if(ordenar) arr.sort((a,b)=>b[1]-a[1]);
+    let html=`<table><thead><tr><th>${c1}</th><th>${c2}</th></tr></thead><tbody>`;
+    if(!arr.length) html+=`<tr><td colspan="2">Sem dados.</td></tr>`;
+    arr.forEach(([k,v])=>html+=`<tr><td>${esc(k)}</td><td>${v}</td></tr>`);
+    return html+`</tbody></table>`;
+}
+
+/* ---------- CSV ---------- */
+function exportarCSV(){
+    if(!sessionStorage.getItem("admin3bprv")) return;
+    const linhas=[["Data","RE","Pelotão","Opção","Rodovia","Sentido","Km/Trecho","Operação","Justificativa","Horário inicial","Horário final","Dias"]];
+    getDados().forEach(r=>r.opcoes.forEach((o,i)=>linhas.push([
+        r.data,r.re,r.pelotao,i+1,o.rodovia,o.sentido,o.km,o.operacao,o.justificativa,o.horaInicio||"",o.horaFim||"",o.dias||""
+    ])));
+    const csv=linhas.map(l=>l.map(v=>`"${String(v??"").replaceAll('"','""')}"`).join(";")).join("\n");
+    const blob=new Blob(["\uFEFF"+csv],{type:"text/csv;charset=utf-8;"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="relatorio_sugestoes_3BPRv.csv";a.click();
+    URL.revokeObjectURL(url);
+}
+
+window.addEventListener("load",()=>{
+    montarOpcoes();
+    iniciarDados();
+    if(sessionStorage.getItem("admin3bprv")) mostrarAdmin();
 });
-
-window.editProcedimento = function(id){
-  let p = procedimentos.find(x=>x.id===id);
-  if(!p) return;
-  document.getElementById('proc-id').value = p.id;
-  document.getElementById('proc-nome').value = p.nome;
-  document.getElementById('proc-produto').value = p.produtoId || '';
-  document.getElementById('proc-ciclo').value = p.cicloCobranca || 6;
-  document.getElementById('proc-valor').value = p.valor || 0;
-  document.getElementById('proc-form-title').textContent = 'Editar Procedimento';
-  document.getElementById('proc-submit-btn').textContent = 'Salvar Alterações';
-  document.getElementById('proc-cancel-wrap').style.display = 'block';
-  window.scrollTo({top:0, behavior:'smooth'});
-};
-document.getElementById('proc-cancel-edit').addEventListener('click', ()=>{
-  document.getElementById('form-procedimento').reset();
-  document.getElementById('proc-id').value='';
-  document.getElementById('proc-form-title').textContent='Cadastrar Procedimento / Pacote';
-  document.getElementById('proc-submit-btn').textContent='Salvar Procedimento';
-  document.getElementById('proc-cancel-wrap').style.display='none';
-});
-
-document.getElementById('form-estoque').addEventListener('submit', (e)=>{
-  e.preventDefault();
-  let id = document.getElementById('estoque-id').value;
-  let data = {
-    id: id || uid(),
-    nome: document.getElementById('estoque-nome').value,
-    quantidade: parseInt(document.getElementById('estoque-qtd').value) || 0,
-    minimo: parseInt(document.getElementById('estoque-min').value) || 1,
-    custo: parseFloat(document.getElementById('estoque-custo').value) || 0
-  };
-  if(id){ estoque = estoque.map(x=>x.id===id?data:x); } else { estoque.push(data); }
-  saveAll('seta_estoque', estoque);
-  e.target.reset(); document.getElementById('estoque-id').value='';
-  document.getElementById('estoque-cancel-wrap').style.display='none';
-  renderAll(); alert('Produto salvo no estoque!');
-});
-
-window.editEstoque = function(id){
-  let p = estoque.find(x=>x.id===id);
-  if(!p) return;
-  document.getElementById('estoque-id').value = p.id;
-  document.getElementById('estoque-nome').value = p.nome;
-  document.getElementById('estoque-qtd').value = p.quantidade;
-  document.getElementById('estoque-min').value = p.minimo;
-  document.getElementById('estoque-custo').value = p.custo || 0;
-  document.getElementById('estoque-form-title').textContent = 'Editar Produto';
-  document.getElementById('estoque-submit-btn').textContent = 'Salvar Alterações';
-  document.getElementById('estoque-cancel-wrap').style.display = 'block';
-  window.scrollTo({top:0, behavior:'smooth'});
-};
-document.getElementById('estoque-cancel-edit').addEventListener('click', ()=>{
-  document.getElementById('form-estoque').reset();
-  document.getElementById('estoque-id').value='';
-  document.getElementById('estoque-form-title').textContent='Cadastrar Produto no Estoque Geral';
-  document.getElementById('estoque-submit-btn').textContent='Salvar Produto';
-  document.getElementById('estoque-cancel-wrap').style.display='none';
-});
-
-document.getElementById('relatorio-mes').addEventListener('change', renderRelatorio);
-
-renderAll();
 </script>
 </body>
 </html>
